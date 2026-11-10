@@ -4,8 +4,18 @@ Image classification for industrial vision. One object, `RPCLASS`, with a few si
 for a number of epochs or to a time budget, and exported to ONNX for serving (TensorRT, ONNX Runtime, Triton). It is
 built the same way as RP-OD, its object-detection sibling.
 
-> **Under development.** Nothing here is ready to use yet. The design decisions: `docs/DESIGN.md`.
-> Every experiment and its numbers: `docs/EXPERIMENTS.md`.
+> **Version 0.1.0**, the first public release; the API can still change before 1.0. The design decisions:
+> `docs/DESIGN.md`. Every experiment and its numbers: `docs/EXPERIMENTS.md`.
+
+## Install
+
+Python 3.10 or newer, PyTorch 2.5 or newer.
+
+```bash
+pip install "rpclass[export] @ git+https://github.com/rosepetal-ai/rosepetal-research-RP-CLASS@v0.1.0"
+```
+
+`[export]` adds ONNX and ONNX Runtime, which `model.export()` needs.
 
 ## Use
 
@@ -58,8 +68,6 @@ over the datasets:
 | YOLO11s-cls | 77.1 ± 1.2 | 77.8 ± 0.8 | 76.3 ± 2.5 |
 
 ## Development
-
-Python 3.10 or newer, PyTorch 2.5 or newer.
 
 ```bash
 git clone https://github.com/rosepetal-ai/rosepetal-research-RP-CLASS && cd rosepetal-research-RP-CLASS

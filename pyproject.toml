@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{name = "Rosepetal AI"}]
 keywords = ["image classification", "industrial inspection", "real-time", "computer vision", "pytorch"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
