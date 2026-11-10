@@ -1,0 +1,96 @@
+{
+  "task": "cashew",
+  "imgsz": 448,
+  "classes": [
+    "nok",
+    "ok"
+  ],
+  "dataset": "visa",
+  "licence": "CC BY 4.0",
+  "source": "https://github.com/amazon-science/spot-diff",
+  "positive": "nok",
+  "downloads": [
+    {
+      "file": "2cls_highshot.csv",
+      "url": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/split_csv/2cls_highshot.csv",
+      "size": 658163,
+      "sha256": "c3331eede15f2da8a75b380d4fbfb24f75ee036ec9a25147eca898da6e972f09"
+    },
+    {
+      "file": "VisA_20220922.tar",
+      "url": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+      "size": 1929840640,
+      "sha256": "2eb8690c803ab37de0324772964100169ec8ba1fa3f7e94291c9ca673f40f362"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "official",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 600,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 4,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 2,
+    "pool_images_tied_to_the_test_dropped": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "nok": 0.166667,
+    "ok": 0.833333
+  },
+  "test": {
+    "nok": 40,
+    "ok": 200
+  },
+  "val": {
+    "nok": 17,
+    "ok": 83
+  },
+  "pool": {
+    "nok": 43,
+    "ok": 217
+  },
+  "train": {
+    "s0": {
+      "nok": 43,
+      "ok": 217
+    },
+    "s1": {
+      "nok": 43,
+      "ok": 217
+    },
+    "s2": {
+      "nok": 43,
+      "ok": 217
+    }
+  }
+}

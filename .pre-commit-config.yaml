@@ -1,0 +1,10 @@
+# Local secret scan on every `git commit`, the same check .github/workflows/gitleaks.yml runs on the server (the CI
+# scan stays the backstop for anyone who has not installed the hook). The rev is the gitleaks version the CI
+# installs (v8.21.2): bump both together. gitleaks reads .gitleaks.toml at the repository root.
+#
+# One-time activation per clone:  ./setup-hooks.sh
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks

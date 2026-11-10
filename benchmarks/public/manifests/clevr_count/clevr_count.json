@@ -1,0 +1,138 @@
+{
+  "task": "clevr_count",
+  "imgsz": 224,
+  "classes": [
+    "n03",
+    "n04",
+    "n05",
+    "n06",
+    "n07",
+    "n08",
+    "n09",
+    "n10"
+  ],
+  "dataset": "clevr_count",
+  "licence": "CC BY 4.0",
+  "source": "https://cs.stanford.edu/people/jcjohns/clevr/",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "CLEVR_v1.0.zip",
+      "url": "https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip",
+      "size": 19021600724,
+      "sha256": "5cd61cf1096ed20944df93c9adb31e74d189b8459a94f54ba00090e5c59936d1"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "official",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 18200,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 1,
+    "pool_images_tied_to_the_test_dropped": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "n03": 0.125,
+    "n04": 0.123771,
+    "n05": 0.124543,
+    "n06": 0.127114,
+    "n07": 0.122743,
+    "n08": 0.124443,
+    "n09": 0.125057,
+    "n10": 0.127329
+  },
+  "test": {
+    "n03": 1898,
+    "n04": 1925,
+    "n05": 1843,
+    "n06": 1852,
+    "n07": 1808,
+    "n08": 1941,
+    "n09": 1877,
+    "n10": 1856
+  },
+  "val": {
+    "n03": 12,
+    "n04": 12,
+    "n05": 12,
+    "n06": 13,
+    "n07": 12,
+    "n08": 12,
+    "n09": 13,
+    "n10": 13
+  },
+  "pool": {
+    "n03": 388,
+    "n04": 388,
+    "n05": 388,
+    "n06": 387,
+    "n07": 388,
+    "n08": 388,
+    "n09": 387,
+    "n10": 387
+  },
+  "train": {
+    "s0": {
+      "n03": 38,
+      "n04": 37,
+      "n05": 37,
+      "n06": 38,
+      "n07": 37,
+      "n08": 37,
+      "n09": 38,
+      "n10": 38
+    },
+    "s1": {
+      "n03": 38,
+      "n04": 37,
+      "n05": 37,
+      "n06": 38,
+      "n07": 37,
+      "n08": 37,
+      "n09": 38,
+      "n10": 38
+    },
+    "s2": {
+      "n03": 38,
+      "n04": 37,
+      "n05": 37,
+      "n06": 38,
+      "n07": 37,
+      "n08": 37,
+      "n09": 38,
+      "n10": 38
+    }
+  }
+}

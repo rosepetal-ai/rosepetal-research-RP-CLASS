@@ -1,0 +1,144 @@
+{
+  "task": "class05",
+  "imgsz": 448,
+  "classes": [
+    "nok",
+    "ok"
+  ],
+  "dataset": "dagm",
+  "licence": "CC BY 4.0",
+  "source": "https://zenodo.org/records/12750201",
+  "positive": "nok",
+  "downloads": [
+    {
+      "file": "Class1.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class1.zip?download=1",
+      "size": 267943772,
+      "sha256": "eaa6531c468dfe71d06ac38cbbcc8f92aafe4bfcac2590cbc8d54482fb696e84"
+    },
+    {
+      "file": "Class2.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class2.zip?download=1",
+      "size": 228042837,
+      "sha256": "47e626aab831085c19e94093bb3cd3815a356f0df3dd3245ec2c679fba776169"
+    },
+    {
+      "file": "Class3.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class3.zip?download=1",
+      "size": 202923699,
+      "sha256": "3e76905bbb28782cd7b115123129e92f256fc69490d72a2eaadccac52b7e7175"
+    },
+    {
+      "file": "Class4.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class4.zip?download=1",
+      "size": 196885903,
+      "sha256": "880fb4af29444cf0130142de4db91dbe53ea83f02125ba985a33a7fb2433aabc"
+    },
+    {
+      "file": "Class5.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class5.zip?download=1",
+      "size": 215005526,
+      "sha256": "0e3e868ae3b8b7a948cdfe0f80a044ff4b6eb1686933e7dba5ed6a642ad22aa5"
+    },
+    {
+      "file": "Class6.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class6.zip?download=1",
+      "size": 260830045,
+      "sha256": "6be68990cb4f14b3f2d163fb3e490c32485346e2c72c09839704c663691aaf73"
+    },
+    {
+      "file": "Class7.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class7.zip?download=1",
+      "size": 380424293,
+      "sha256": "b1369b424178a2183a4ee736e3c3297342a03bf922e2098c6c16fe23b5a7f02f"
+    },
+    {
+      "file": "Class8.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class8.zip?download=1",
+      "size": 392568394,
+      "sha256": "09ebf1baf90e05e06586ebb7d0d14a67a08236fcaeae7583c4fc805474c3b085"
+    },
+    {
+      "file": "Class9.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class9.zip?download=1",
+      "size": 392362320,
+      "sha256": "6cc205af3e23160acbee686d7b38b316558cad62a79debf3ec0292248ff2f149"
+    },
+    {
+      "file": "Class10.zip",
+      "url": "https://zenodo.org/records/12750201/files/Class10.zip?download=1",
+      "size": 410358784,
+      "sha256": "d3f72320446346d44722c4d074188cd1a7179f97b24faed8a96db5fdc8b9d5ed"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "official",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 1150,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 1,
+    "pool_images_tied_to_the_test_dropped": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "nok": 0.121739,
+    "ok": 0.878261
+  },
+  "test": {
+    "nok": 80,
+    "ok": 495
+  },
+  "val": {
+    "nok": 12,
+    "ok": 88
+  },
+  "pool": {
+    "nok": 58,
+    "ok": 417
+  },
+  "train": {
+    "s0": {
+      "nok": 37,
+      "ok": 263
+    },
+    "s1": {
+      "nok": 37,
+      "ok": 263
+    },
+    "s2": {
+      "nok": 37,
+      "ok": 263
+    }
+  }
+}

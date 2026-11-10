@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rpclass"
+version = "0.1.0"
+description = "Image classification for industrial vision: one object, one fixed recipe, ONNX export."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-only OR LicenseRef-Rosepetal-Enterprise-License"
+license-files = ["LICENSE"]
+authors = [{name = "Rosepetal AI"}]
+keywords = ["image classification", "industrial inspection", "real-time", "computer vision", "pytorch"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+dependencies = [
+    "torch>=2.5",
+    "torchvision>=0.20",
+    "timm>=1.0.20",
+    "numpy",
+    "pyyaml",
+    "pillow",
+    "matplotlib",
+]
+
+[project.urls]
+Repository = "https://github.com/rosepetal-ai/rosepetal-research-RP-CLASS"
+Issues = "https://github.com/rosepetal-ai/rosepetal-research-RP-CLASS/issues"
+
+[project.optional-dependencies]
+export = ["onnx", "onnxruntime"]
+dev = ["pytest", "onnx", "onnxruntime", "scikit-learn", "requests"]
+
+[tool.setuptools.packages.find]
+include = ["rpclass*"]

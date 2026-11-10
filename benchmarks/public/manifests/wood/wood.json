@@ -1,0 +1,155 @@
+{
+  "task": "wood",
+  "imgsz": 224,
+  "classes": [
+    "crack",
+    "dead_knot",
+    "knot_missing",
+    "knot_with_crack",
+    "live_knot",
+    "marrow",
+    "quartzity",
+    "resin"
+  ],
+  "dataset": "wood",
+  "licence": "CC BY 4.0",
+  "source": "https://zenodo.org/api/records/4694695",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "Bouding_Boxes.zip",
+      "url": "https://zenodo.org/records/4694695/files/Bouding_Boxes.zip?download=1",
+      "size": 5002318,
+      "sha256": "19cd3cf53ac95625558e365a3482524add3e1dcce4a03aaf62dd0447a49ab814"
+    },
+    {
+      "file": "Images1.zip",
+      "url": "https://zenodo.org/records/4694695/files/Images1.zip?download=1",
+      "size": 15282458754,
+      "sha256": "0d2a0d115dbf2336440ce03dfe7d76fb00e25e68338db83dc6fa00f027591df2"
+    },
+    {
+      "file": "Images2.zip",
+      "url": "https://zenodo.org/records/4694695/files/Images2.zip?download=1",
+      "size": 15347429322,
+      "sha256": "6f12acef06c843abd8b348206ae2449bf23d7d597eefbbd08457c756dfa166b6"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {
+    "dropped_types": {
+      "Blue_Stain": "by the proposal (no box in Images1-2)",
+      "overgrown": "by the proposal (no box in Images1-2)"
+    }
+  },
+  "protocol": {
+    "test": "built: 0.4 of each class, at most 500",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 8037,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 111,
+    "left_out_with_test_groups": 1840,
+    "left_out_with_val_groups": 257,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "crack": 0.05089,
+    "dead_knot": 0.331716,
+    "knot_missing": 0.012194,
+    "knot_with_crack": 0.044793,
+    "live_knot": 0.458007,
+    "marrow": 0.018788,
+    "quartzity": 0.01182,
+    "resin": 0.071793
+  },
+  "test": {
+    "crack": 164,
+    "dead_knot": 500,
+    "knot_missing": 39,
+    "knot_with_crack": 144,
+    "live_knot": 500,
+    "marrow": 60,
+    "quartzity": 38,
+    "resin": 231
+  },
+  "val": {
+    "crack": 5,
+    "dead_knot": 33,
+    "knot_missing": 5,
+    "knot_with_crack": 5,
+    "live_knot": 46,
+    "marrow": 5,
+    "quartzity": 5,
+    "resin": 7
+  },
+  "pool": {
+    "crack": 224,
+    "dead_knot": 1421,
+    "knot_missing": 49,
+    "knot_with_crack": 188,
+    "live_knot": 1895,
+    "marrow": 65,
+    "quartzity": 42,
+    "resin": 269
+  },
+  "train": {
+    "s0": {
+      "crack": 20,
+      "dead_knot": 100,
+      "knot_missing": 20,
+      "knot_with_crack": 20,
+      "live_knot": 137,
+      "marrow": 20,
+      "quartzity": 20,
+      "resin": 22
+    },
+    "s1": {
+      "crack": 20,
+      "dead_knot": 100,
+      "knot_missing": 20,
+      "knot_with_crack": 20,
+      "live_knot": 137,
+      "marrow": 20,
+      "quartzity": 20,
+      "resin": 22
+    },
+    "s2": {
+      "crack": 20,
+      "dead_knot": 100,
+      "knot_missing": 20,
+      "knot_with_crack": 20,
+      "live_knot": 137,
+      "marrow": 20,
+      "quartzity": 20,
+      "resin": 22
+    }
+  }
+}

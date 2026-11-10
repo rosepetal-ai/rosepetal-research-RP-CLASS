@@ -1,0 +1,138 @@
+{
+  "task": "bloodmnist",
+  "imgsz": 224,
+  "classes": [
+    "basophil",
+    "eosinophil",
+    "erythroblast",
+    "ig",
+    "lymphocyte",
+    "monocyte",
+    "neutrophil",
+    "platelet"
+  ],
+  "dataset": "bloodmnist",
+  "licence": "CC BY 4.0",
+  "source": "https://zenodo.org/api/records/10519652",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "bloodmnist_224.npz",
+      "url": "https://zenodo.org/records/10519652/files/bloodmnist_224.npz?download=1",
+      "size": 1540731655,
+      "sha256": "534bfb674fcfcfecf691aaca942ced2181d3affae9528a645ae51d12e9f3e1a1"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "official",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 17092,
+    "exact_copies_dropped": 16,
+    "conflicting_copies_dropped": 2,
+    "featureless": 0,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 1,
+    "pool_images_tied_to_the_test_dropped": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "basophil": 0.070895,
+    "eosinophil": 0.182071,
+    "erythroblast": 0.090816,
+    "ig": 0.169401,
+    "lymphocyte": 0.071115,
+    "monocyte": 0.083126,
+    "neutrophil": 0.195034,
+    "platelet": 0.137542
+  },
+  "test": {
+    "basophil": 244,
+    "eosinophil": 624,
+    "erythroblast": 311,
+    "ig": 579,
+    "lymphocyte": 243,
+    "monocyte": 284,
+    "neutrophil": 665,
+    "platelet": 470
+  },
+  "val": {
+    "basophil": 7,
+    "eosinophil": 18,
+    "erythroblast": 9,
+    "ig": 17,
+    "lymphocyte": 7,
+    "monocyte": 8,
+    "neutrophil": 20,
+    "platelet": 14
+  },
+  "pool": {
+    "basophil": 961,
+    "eosinophil": 2468,
+    "erythroblast": 1231,
+    "ig": 2296,
+    "lymphocyte": 964,
+    "monocyte": 1127,
+    "neutrophil": 2643,
+    "platelet": 1864
+  },
+  "train": {
+    "s0": {
+      "basophil": 21,
+      "eosinophil": 55,
+      "erythroblast": 27,
+      "ig": 51,
+      "lymphocyte": 21,
+      "monocyte": 25,
+      "neutrophil": 59,
+      "platelet": 41
+    },
+    "s1": {
+      "basophil": 21,
+      "eosinophil": 55,
+      "erythroblast": 27,
+      "ig": 51,
+      "lymphocyte": 21,
+      "monocyte": 25,
+      "neutrophil": 59,
+      "platelet": 41
+    },
+    "s2": {
+      "basophil": 21,
+      "eosinophil": 55,
+      "erythroblast": 27,
+      "ig": 51,
+      "lymphocyte": 21,
+      "monocyte": 25,
+      "neutrophil": 59,
+      "platelet": 41
+    }
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "task": "nct_crc_he",
+  "imgsz": 224,
+  "classes": [
+    "adi",
+    "back",
+    "deb",
+    "lym",
+    "muc",
+    "mus",
+    "norm",
+    "str",
+    "tum"
+  ],
+  "dataset": "nct_crc_he",
+  "licence": "CC BY 4.0",
+  "source": "https://zenodo.org/api/records/1214456",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "CRC-VAL-HE-7K.zip",
+      "url": "https://zenodo.org/records/1214456/files/CRC-VAL-HE-7K.zip?download=1",
+      "size": 800276929,
+      "sha256": "1bcb631804a7136dbea427bc83826f2b6b6f61939470d8aec4aede93bfaaf1af"
+    },
+    {
+      "file": "NCT-CRC-HE-100K.zip",
+      "url": "https://zenodo.org/records/1214456/files/NCT-CRC-HE-100K.zip?download=1",
+      "size": 11690284003,
+      "sha256": "60793a1e3fc27aa192ac3cd5d590d0ac2c1d39405093b7a411d7f643c6d0cc48"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "official",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 10780,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 191,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 1,
+    "pool_images_tied_to_the_test_dropped": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "adi": 0.10407,
+    "back": 0.10566,
+    "deb": 0.11512,
+    "lym": 0.11557,
+    "muc": 0.08896,
+    "mus": 0.13536,
+    "norm": 0.08763,
+    "str": 0.10446,
+    "tum": 0.14317
+  },
+  "test": {
+    "adi": 1338,
+    "back": 847,
+    "deb": 339,
+    "lym": 634,
+    "muc": 1035,
+    "mus": 592,
+    "norm": 741,
+    "str": 421,
+    "tum": 1233
+  },
+  "val": {
+    "adi": 10,
+    "back": 11,
+    "deb": 12,
+    "lym": 12,
+    "muc": 9,
+    "mus": 14,
+    "norm": 9,
+    "str": 10,
+    "tum": 14
+  },
+  "pool": {
+    "adi": 390,
+    "back": 389,
+    "deb": 388,
+    "lym": 388,
+    "muc": 391,
+    "mus": 386,
+    "norm": 391,
+    "str": 390,
+    "tum": 386
+  },
+  "train": {
+    "s0": {
+      "adi": 31,
+      "back": 32,
+      "deb": 35,
+      "lym": 35,
+      "muc": 27,
+      "mus": 41,
+      "norm": 26,
+      "str": 31,
+      "tum": 43
+    },
+    "s1": {
+      "adi": 31,
+      "back": 32,
+      "deb": 35,
+      "lym": 35,
+      "muc": 27,
+      "mus": 41,
+      "norm": 26,
+      "str": 31,
+      "tum": 43
+    },
+    "s2": {
+      "adi": 31,
+      "back": 32,
+      "deb": 35,
+      "lym": 35,
+      "muc": 27,
+      "mus": 41,
+      "norm": 26,
+      "str": 31,
+      "tum": 43
+    }
+  }
+}

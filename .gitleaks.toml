@@ -1,0 +1,6 @@
+# gitleaks configuration, local and CI. Without the [extend] block a .gitleaks.toml replaces the default rules and the
+# scan finds nothing; with it, this file only adds to the upstream rule set. No allowlist: keep it that way unless an
+# entry is unavoidable, and then explain next to it why it is safe.
+
+[extend]
+useDefault = true

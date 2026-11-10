@@ -1,0 +1,152 @@
+{
+  "task": "deepweeds",
+  "imgsz": 224,
+  "classes": [
+    "chinee_apple",
+    "lantana",
+    "negative",
+    "parkinsonia",
+    "parthenium",
+    "prickly_acacia",
+    "rubber_vine",
+    "siam_weed",
+    "snake_weed"
+  ],
+  "dataset": "deepweeds",
+  "licence": "CC BY 4.0 for the images and annotations; the repository contents are Apache-2.0",
+  "source": "https://github.com/AlexOlsen/DeepWeeds",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "labels.csv",
+      "url": "https://raw.githubusercontent.com/AlexOlsen/DeepWeeds/da084f62bcd1a2b0afeb8b81f1a27be3186391a1/labels/labels.csv",
+      "size": 598898,
+      "sha256": "6fb95b89fd9d384f94e185a5cab6c5da7c987649399c90618ecc60acfb0112eb"
+    },
+    {
+      "file": "images.zip",
+      "url": "https://drive.usercontent.google.com/download?id=1xnK3B6K6KekDI55vwJ0vnc2IGoDga9cj&export=download&confirm=t",
+      "size": 491516047,
+      "sha256": "0961f63c01b997bfab1559ad09e99c0e8130617fd96a8b92fdc09940e01b0ce8"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "built: 0.4 of each class, at most 500",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 17509,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 57,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 2,
+    "left_out_with_test_groups": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "chinee_apple": 0.064253,
+    "lantana": 0.060769,
+    "negative": 0.520075,
+    "parkinsonia": 0.058884,
+    "parthenium": 0.05837,
+    "prickly_acacia": 0.060655,
+    "rubber_vine": 0.057628,
+    "siam_weed": 0.06134,
+    "snake_weed": 0.058027
+  },
+  "test": {
+    "chinee_apple": 450,
+    "lantana": 426,
+    "negative": 500,
+    "parkinsonia": 412,
+    "parthenium": 409,
+    "prickly_acacia": 425,
+    "rubber_vine": 404,
+    "siam_weed": 430,
+    "snake_weed": 406
+  },
+  "val": {
+    "chinee_apple": 6,
+    "lantana": 6,
+    "negative": 52,
+    "parkinsonia": 6,
+    "parthenium": 6,
+    "prickly_acacia": 6,
+    "rubber_vine": 6,
+    "siam_weed": 6,
+    "snake_weed": 6
+  },
+  "pool": {
+    "chinee_apple": 669,
+    "lantana": 632,
+    "negative": 8554,
+    "parkinsonia": 613,
+    "parthenium": 607,
+    "prickly_acacia": 631,
+    "rubber_vine": 599,
+    "siam_weed": 638,
+    "snake_weed": 604
+  },
+  "train": {
+    "s0": {
+      "chinee_apple": 20,
+      "lantana": 20,
+      "negative": 156,
+      "parkinsonia": 20,
+      "parthenium": 20,
+      "prickly_acacia": 20,
+      "rubber_vine": 20,
+      "siam_weed": 20,
+      "snake_weed": 20
+    },
+    "s1": {
+      "chinee_apple": 20,
+      "lantana": 20,
+      "negative": 156,
+      "parkinsonia": 20,
+      "parthenium": 20,
+      "prickly_acacia": 20,
+      "rubber_vine": 20,
+      "siam_weed": 20,
+      "snake_weed": 20
+    },
+    "s2": {
+      "chinee_apple": 20,
+      "lantana": 20,
+      "negative": 156,
+      "parkinsonia": 20,
+      "parthenium": 20,
+      "prickly_acacia": 20,
+      "rubber_vine": 20,
+      "siam_weed": 20,
+      "snake_weed": 20
+    }
+  }
+}

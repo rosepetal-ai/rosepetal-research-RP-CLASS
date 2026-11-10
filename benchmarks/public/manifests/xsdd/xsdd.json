@@ -1,0 +1,132 @@
+{
+  "task": "xsdd",
+  "imgsz": 224,
+  "classes": [
+    "iron_sheet_ash",
+    "oxide_plate",
+    "oxide_temperature",
+    "red_iron",
+    "roll_printing",
+    "scratch",
+    "slag_inclusion"
+  ],
+  "dataset": "xsdd",
+  "licence": "Apache-2.0 (the repository LICENSE, copyright line never filled in; image rights not documented)",
+  "source": "https://github.com/Fighter20092392/X-SDD-A-New-benchmark/blob/adf880814dbd365c73fc3643019272b5637fecc2/LICENSE",
+  "positive": null,
+  "downloads": [
+    {
+      "file": "X-SDD-A-New-benchmark-adf880814dbd365c73fc3643019272b5637fecc2.zip",
+      "url": "https://codeload.github.com/Fighter20092392/X-SDD-A-New-benchmark/zip/adf880814dbd365c73fc3643019272b5637fecc2",
+      "size": 6642107,
+      "sha256": "7ddbb1168e406a03aace6e62558026b89da214dce15aa714af5fbc1a06fd7e07"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {
+    "reencoded": "the 142 PNG of finishing roll printing (6001-6142) written as JPEG once (quality 90, 4:2:0, as the other 1,218): every PNG sits in that one class, and the file format alone would give away 70 % of it"
+  },
+  "protocol": {
+    "test": "built: 0.4 of each class, at most 500",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 1360,
+    "exact_copies_dropped": 9,
+    "conflicting_copies_dropped": 0,
+    "featureless": 7,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 1,
+    "left_out_with_test_groups": 0,
+    "left_out_with_val_groups": 0,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "iron_sheet_ash": 0.090303,
+    "oxide_plate": 0.046632,
+    "oxide_temperature": 0.150259,
+    "red_iron": 0.287195,
+    "roll_printing": 0.150259,
+    "scratch": 0.099186,
+    "slag_inclusion": 0.176166
+  },
+  "test": {
+    "iron_sheet_ash": 49,
+    "oxide_plate": 25,
+    "oxide_temperature": 81,
+    "red_iron": 155,
+    "roll_printing": 81,
+    "scratch": 54,
+    "slag_inclusion": 95
+  },
+  "val": {
+    "iron_sheet_ash": 9,
+    "oxide_plate": 5,
+    "oxide_temperature": 15,
+    "red_iron": 29,
+    "roll_printing": 15,
+    "scratch": 10,
+    "slag_inclusion": 18
+  },
+  "pool": {
+    "iron_sheet_ash": 64,
+    "oxide_plate": 33,
+    "oxide_temperature": 107,
+    "red_iron": 204,
+    "roll_printing": 107,
+    "scratch": 70,
+    "slag_inclusion": 125
+  },
+  "train": {
+    "s0": {
+      "iron_sheet_ash": 27,
+      "oxide_plate": 20,
+      "oxide_temperature": 45,
+      "red_iron": 86,
+      "roll_printing": 45,
+      "scratch": 30,
+      "slag_inclusion": 53
+    },
+    "s1": {
+      "iron_sheet_ash": 27,
+      "oxide_plate": 20,
+      "oxide_temperature": 45,
+      "red_iron": 86,
+      "roll_printing": 45,
+      "scratch": 30,
+      "slag_inclusion": 53
+    },
+    "s2": {
+      "iron_sheet_ash": 27,
+      "oxide_plate": 20,
+      "oxide_temperature": 45,
+      "red_iron": 86,
+      "roll_printing": 45,
+      "scratch": 30,
+      "slag_inclusion": 53
+    }
+  }
+}

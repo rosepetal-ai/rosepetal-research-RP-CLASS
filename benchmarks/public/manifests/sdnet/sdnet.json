@@ -1,0 +1,90 @@
+{
+  "task": "sdnet",
+  "imgsz": 224,
+  "classes": [
+    "nok",
+    "ok"
+  ],
+  "dataset": "sdnet",
+  "licence": "CC BY 4.0",
+  "source": "https://digitalcommons.usu.edu/all_datasets/48/",
+  "positive": "nok",
+  "downloads": [
+    {
+      "file": "DATA_Maguire_20180517_ALL.zip",
+      "url": "https://digitalcommons.usu.edu/context/all_datasets/article/1047/type/native/viewcontent",
+      "size": 528286896,
+      "sha256": "6f304ea70f1a25e52095df3f5e98f53428b6ad6c06819ea8ba4cbf920a90f7c1"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "built: 0.4 of each class, at most 500",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 4000,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 38,
+    "look_alikes_grouped": 0,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 45,
+    "left_out_with_test_groups": 108,
+    "left_out_with_val_groups": 87,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "nok": 0.151203,
+    "ok": 0.848797
+  },
+  "test": {
+    "nok": 500,
+    "ok": 500
+  },
+  "val": {
+    "nok": 16,
+    "ok": 84
+  },
+  "pool": {
+    "nok": 1391,
+    "ok": 1314
+  },
+  "train": {
+    "s0": {
+      "nok": 45,
+      "ok": 255
+    },
+    "s1": {
+      "nok": 45,
+      "ok": 255
+    },
+    "s2": {
+      "nok": 45,
+      "ok": 255
+    }
+  }
+}

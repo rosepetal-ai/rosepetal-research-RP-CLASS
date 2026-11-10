@@ -1,0 +1,90 @@
+{
+  "task": "rawfabrid",
+  "imgsz": 224,
+  "classes": [
+    "nok",
+    "ok"
+  ],
+  "dataset": "rawfabrid",
+  "licence": "CC BY 4.0",
+  "source": "https://data.mendeley.com/public-api/datasets/db6g85xsyg?version=1",
+  "positive": "nok",
+  "downloads": [
+    {
+      "file": "RAW_FABRID.zip",
+      "url": "https://data.mendeley.com/public-files/datasets/db6g85xsyg/files/93e17d48-b5e6-45f7-9064-be84cc5fb91c/file_downloaded",
+      "size": 4133046386,
+      "sha256": "f6b4f82cce2f0220bbab3968a74b5337ebf2bbfd5e33d0548d34e1ebf80f85b9"
+    }
+  ],
+  "environment": {
+    "python": "3.11.18",
+    "numpy": "2.4.6",
+    "pillow": "13.0.0",
+    "zlib": "1.2.11",
+    "libjpeg": "6.2"
+  },
+  "notes": {},
+  "protocol": {
+    "test": "built: 0.4 of each class, at most 500",
+    "val": [
+      100,
+      5
+    ],
+    "train": [
+      300,
+      20
+    ],
+    "split_seed": 1234,
+    "near_copy": {
+      "hash_radius": 4,
+      "mad_32px": 3.0,
+      "mad_128px": 1.5,
+      "featureless_std": 2.0
+    }
+  },
+  "dedup": {
+    "images_listed": 19852,
+    "exact_copies_dropped": 0,
+    "conflicting_copies_dropped": 0,
+    "featureless": 0,
+    "look_alikes_grouped": 12,
+    "near_copies_found": 0,
+    "near_copies_with_two_labels": 0,
+    "images_dropped_for_label_conflicts": 0,
+    "largest_group": 140,
+    "left_out_with_test_groups": 1885,
+    "left_out_with_val_groups": 38,
+    "jpeg_orientation_tags_cleared": 0
+  },
+  "share": {
+    "nok": 0.034606,
+    "ok": 0.965394
+  },
+  "test": {
+    "nok": 275,
+    "ok": 500
+  },
+  "val": {
+    "nok": 5,
+    "ok": 97
+  },
+  "pool": {
+    "nok": 399,
+    "ok": 16653
+  },
+  "train": {
+    "s0": {
+      "nok": 20,
+      "ok": 290
+    },
+    "s1": {
+      "nok": 20,
+      "ok": 290
+    },
+    "s2": {
+      "nok": 20,
+      "ok": 290
+    }
+  }
+}
