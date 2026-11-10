@@ -25,7 +25,7 @@ Setup: `benchmarks/tensorrt.py sizes` exported every size at its default input s
 same time. YOLO11s-cls was exported at 224 and 384 px. One real image was letterboxed as each engine expects it, and
 PyTorch's float32 answer was kept. On an RTX 4090, an RTX 3060 and an RTX 2060, each model was built by trtexec with
 TensorRT 10.9, in float16 (`--fp16`) and float32 (TF32 where the GPU has it), batch profile 1-16, and timed at batch 1
-over 1000 runs after 500 to warm up, without host-device copies (`--noDataTransfers`). `benchmarks/tensorrt.py report`
+over 1000 runs after 500 ms of warm-up, without host-device copies (`--noDataTransfers`). `benchmarks/tensorrt.py report`
 read each GPU's logs.
 
 Result: GPU time per image, median, float16 / float32.
@@ -43,7 +43,7 @@ Every RP-CLASS engine gives PyTorch's class on all three GPUs. The largest proba
 float16 and 2.3e-4 in float32. lt, exported with centred keys, holds in float16 on the RTX 2060 too.
 
 Conclusion: in float16, m classifies an image in 0.34 ms on an RTX 4090, 0.80 ms on an RTX 3060 and 1.02 ms on an RTX
-2060. That is 1.3 to 1.5 times YOLO11s-cls at the same 384 px. lt costs 2.7 to 3.7 times m, and float16 matters most
+2060. That is 1.3 to 1.5 times YOLO11s-cls at the same 384 px. lt costs 2.7 to 3.6 times m, and float16 matters most
 for it: float32 is 2.1 times slower on the RTX 4090 and 3.8 times slower on the RTX 2060. These times do not include
 the letterbox or host-device copies. The serving check measured the whole request at 0.72 ms for m and 1.38 ms for lt
 on the RTX 4090 (2026-11-09).
