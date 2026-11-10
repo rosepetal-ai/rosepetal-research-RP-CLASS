@@ -15,6 +15,39 @@ Result: table.
 Conclusion: what it decides (DESIGN.md decision N), and what it does not show.
 ```
 
+## 2026-11-10 · Inference time on three GPUs
+
+Question: how long does each size take to classify one image on the GPUs the models are served on, against
+YOLO11s-cls? And does float16 keep the right answer on every one of them?
+
+Setup: `benchmarks/tensorrt.py sizes` exported every size at its default input size: s, m and l at 384 px, lt at 448 px.
+m and lt were the models trained for the serving check, s and l pretrained with a fresh head, which costs the same time.
+YOLO11s-cls was exported at 224 and 384 px. One real image was letterboxed as each engine expects it, and PyTorch's
+float32 answer was kept. On an RTX 4090, an RTX 3060 and an RTX 2060, each model was built by trtexec with TensorRT
+10.9, in float16 (`--fp16`) and float32 (TF32 where the GPU has it), batch profile 1-16, and timed at batch 1 over 1000
+runs after 500 ms of warm-up, without host-device copies (`--noDataTransfers`). `benchmarks/tensorrt.py report` read
+each GPU's logs.
+
+Result: GPU time per image, median, float16 / float32.
+
+| Model | Input | RTX 4090 | RTX 3060 | RTX 2060 |
+|---|---|---|---|---|
+| **RP-CLASS `s`** (HGNetv2-B0) | 384 × 384 | 0.22 / 0.35 ms | 0.43 / 0.84 ms | 0.50 / 1.13 ms |
+| **RP-CLASS `m`** (HGNetv2-B2) | 384 × 384 | 0.34 / 0.59 ms | 0.80 / 1.68 ms | 1.02 / 2.48 ms |
+| **RP-CLASS `l`** (HGNetv2-B4) | 384 × 384 | 0.44 / 0.75 ms | 1.20 / 2.52 ms | 1.57 / 4.27 ms |
+| **RP-CLASS `lt`** (DINOv3 ViT-S/16) | 448 × 448 | 0.91 / 1.90 ms | 2.77 / 8.38 ms | 3.72 / 14.29 ms |
+| YOLO11s-cls | 224 × 224 | 0.23 / 0.41 ms | 0.35 / 0.73 ms | 0.49 / 0.97 ms |
+| YOLO11s-cls | 384 × 384 | 0.26 / 0.48 ms | 0.53 / 1.21 ms | 0.67 / 1.84 ms |
+
+Every RP-CLASS engine gives PyTorch's class on all three GPUs. The largest probability difference is 4.6e-4 in
+float16 and 2.3e-4 in float32. lt, exported with centred keys, holds in float16 on the RTX 2060 too.
+
+Conclusion: in float16, m classifies an image in 0.34 ms on an RTX 4090, 0.80 ms on an RTX 3060 and 1.02 ms on an RTX
+2060. That is 1.3 to 1.5 times YOLO11s-cls at the same 384 px. lt costs 2.7 to 3.6 times m, and float16 matters most
+for it: float32 is 2.1 times slower on the RTX 4090 and 3.8 times slower on the RTX 2060. These times do not include
+the letterbox or host-device copies. The serving check measured the whole request at 0.72 ms for m and 1.38 ms for lt
+on the RTX 4090 (2026-11-09).
+
 ## 2026-11-09 · Serving parity: RP-CLASS in a float16 TensorRT engine behind Triton
 
 Question: does a trained RP-CLASS model, exported and served in a float16 TensorRT engine, give the answers of

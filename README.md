@@ -58,14 +58,42 @@ License, including its end-use restrictions, and a model trained from `lt` carri
 ## Public benchmark
 
 14 public datasets (7 general, 7 industrial), each cut to about 300 training images, the size of a typical inspection
-dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1`). Macro-F1, the mean
-over the datasets:
+dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1`). Each method trains
+with its own default recipe. Macro-F1, the mean over the datasets:
+
+![Macro-F1 on the public benchmark](docs/images/benchmark_macro_f1.png)
 
 | method | all 14 | general | industrial |
 |---|---|---|---|
 | RP-CLASS lt (DINOv3 ViT-S/16) | 88.8 ± 0.3 | 89.8 ± 0.3 | 87.8 ± 0.8 |
 | RP-CLASS m (HGNetv2-B2) | 85.0 ± 0.6 | 82.4 ± 0.7 | 87.6 ± 0.7 |
 | YOLO11s-cls | 77.1 ± 1.2 | 77.8 ± 0.8 | 76.3 ± 2.5 |
+
+On every dataset, `m` is ahead of YOLO11s-cls, and `lt` is ahead on all but VisA. `lt` leads most on CLEVR count,
+which needs the whole scene. On the industrial sets the two sizes tie on average: `m` is ahead on VisA, `lt` on five of
+the other six, and DAGM is a tie (99.8). The numbers per dataset are in `docs/BENCHMARK.md`.
+
+![Macro-F1 per dataset](docs/images/benchmark_per_dataset.png)
+
+`python3 benchmarks/public/plots.py` draws both charts from `benchmarks/public/results/v1/scores.csv`.
+
+## Inference time
+
+TensorRT 10.9, batch 1, float16 / float32 (GPU time per image, median of 1000 runs, without host-device copies):
+
+| Model | Input | RTX 4090 | RTX 3060 | RTX 2060 |
+|---|---|---|---|---|
+| **RP-CLASS `s`** (HGNetv2-B0) | 384 × 384 | 0.22 / 0.35 ms | 0.43 / 0.84 ms | 0.50 / 1.13 ms |
+| **RP-CLASS `m`** (HGNetv2-B2) | 384 × 384 | 0.34 / 0.59 ms | 0.80 / 1.68 ms | 1.02 / 2.48 ms |
+| **RP-CLASS `l`** (HGNetv2-B4) | 384 × 384 | 0.44 / 0.75 ms | 1.20 / 2.52 ms | 1.57 / 4.27 ms |
+| **RP-CLASS `lt`** (DINOv3 ViT-S/16) | 448 × 448 | 0.91 / 1.90 ms | 2.77 / 8.38 ms | 3.72 / 14.29 ms |
+| YOLO11s-cls | 224 × 224 | 0.23 / 0.41 ms | 0.35 / 0.73 ms | 0.49 / 0.97 ms |
+| YOLO11s-cls | 384 × 384 | 0.26 / 0.48 ms | 0.53 / 1.21 ms | 0.67 / 1.84 ms |
+
+Each RP-CLASS size runs at its default input size; YOLO11s-cls at its own default (224) and at 384. On all three GPUs,
+the float16 engines give PyTorch's class, with probabilities within 5e-4. Float32 uses TF32 where the GPU has it (RTX
+4090 and 3060). How it was measured: `benchmarks/tensorrt.py sizes`, then trtexec as its docstring says, then
+`benchmarks/tensorrt.py report` (docs/EXPERIMENTS.md, 2026-11-10).
 
 ## Development
 
