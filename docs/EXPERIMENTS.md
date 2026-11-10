@@ -20,13 +20,13 @@ Conclusion: what it decides (DESIGN.md decision N), and what it does not show.
 Question: how long does each size take to classify one image on the GPUs the models are served on, against
 YOLO11s-cls? And does float16 keep the right answer on every one of them?
 
-Setup: `benchmarks/tensorrt.py sizes` exported every size at its default input size: s, m and l at 384 px, lt at
-448 px. m and lt were the models trained for the serving check, s and l pretrained with a fresh head, which costs the
-same time. YOLO11s-cls was exported at 224 and 384 px. One real image was letterboxed as each engine expects it, and
-PyTorch's float32 answer was kept. On an RTX 4090, an RTX 3060 and an RTX 2060, each model was built by trtexec with
-TensorRT 10.9, in float16 (`--fp16`) and float32 (TF32 where the GPU has it), batch profile 1-16, and timed at batch 1
-over 1000 runs after 500 ms of warm-up, without host-device copies (`--noDataTransfers`). `benchmarks/tensorrt.py report`
-read each GPU's logs.
+Setup: `benchmarks/tensorrt.py sizes` exported every size at its default input size: s, m and l at 384 px, lt at 448 px.
+m and lt were the models trained for the serving check, s and l pretrained with a fresh head, which costs the same time.
+YOLO11s-cls was exported at 224 and 384 px. One real image was letterboxed as each engine expects it, and PyTorch's
+float32 answer was kept. On an RTX 4090, an RTX 3060 and an RTX 2060, each model was built by trtexec with TensorRT
+10.9, in float16 (`--fp16`) and float32 (TF32 where the GPU has it), batch profile 1-16, and timed at batch 1 over 1000
+runs after 500 ms of warm-up, without host-device copies (`--noDataTransfers`). `benchmarks/tensorrt.py report` read
+each GPU's logs.
 
 Result: GPU time per image, median, float16 / float32.
 
