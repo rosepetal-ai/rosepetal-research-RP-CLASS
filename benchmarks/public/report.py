@@ -61,6 +61,19 @@ def collect(prepared, out):
     return results, tasks
 
 
+def write_scores(results, path):
+    """One row per (dataset, task, method, seed): the metrics of its predictions.csv, as every table here uses them."""
+    rows = [{'dataset': d, 'task': t, 'method': m, 'seed': s, **v}
+            for (d, t), models in sorted(results.items()) for m, seeds in sorted(models.items())
+            for s, v in sorted(seeds.items())]
+    fields = ['dataset', 'task', 'method', 'seed'] + sorted({k for r in rows for k in r} - {'dataset', 'task', 'method',
+                                                                                            'seed'})
+    with open(path, 'w', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(rows)
+
+
 def per_dataset(results, tasks, metric):
     """{dataset: {model: {seed: mean over its tasks}}}, complete datasets only."""
     out = defaultdict(dict)
@@ -85,8 +98,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     p.add_argument('prepared')
     p.add_argument('out')
+    p.add_argument('--scores', help="also write every run's scores to this CSV (benchmarks/public/plots.py reads it)")
     a = p.parse_args()
     results, tasks = collect(a.prepared, a.out)
+    if a.scores:
+        write_scores(results, a.scores)
     by_dataset = per_dataset(results, tasks, 'macro_f1')
     models = sorted({m for r in results.values() for m in r})
     benchmark = [d for d in tasks if d in BENCHMARK]

@@ -58,14 +58,24 @@ License, including its end-use restrictions, and a model trained from `lt` carri
 ## Public benchmark
 
 14 public datasets (7 general, 7 industrial), each cut to about 300 training images, the size of a typical inspection
-dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1`). Macro-F1, the mean
-over the datasets:
+dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1`). Each method trains
+with its own default recipe. Macro-F1, the mean over the datasets:
+
+![Macro-F1 on the public benchmark](docs/images/benchmark_macro_f1.png)
 
 | method | all 14 | general | industrial |
 |---|---|---|---|
 | RP-CLASS lt (DINOv3 ViT-S/16) | 88.8 ± 0.3 | 89.8 ± 0.3 | 87.8 ± 0.8 |
 | RP-CLASS m (HGNetv2-B2) | 85.0 ± 0.6 | 82.4 ± 0.7 | 87.6 ± 0.7 |
 | YOLO11s-cls | 77.1 ± 1.2 | 77.8 ± 0.8 | 76.3 ± 2.5 |
+
+On every dataset, `m` is ahead of YOLO11s-cls, and `lt` is ahead on all but VisA. `lt` leads most on CLEVR count,
+which needs the whole scene. On the industrial sets the two sizes tie on average: `m` is ahead on VisA, `lt` on five of
+the other six, and DAGM is a tie (99.8). The numbers per dataset are in `docs/BENCHMARK.md`.
+
+![Macro-F1 per dataset](docs/images/benchmark_per_dataset.png)
+
+`python3 benchmarks/public/plots.py` draws both charts from `benchmarks/public/results/v1/scores.csv`.
 
 ## Development
 

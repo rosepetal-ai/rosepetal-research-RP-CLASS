@@ -8,5 +8,7 @@ Ultralytics' default recipe. Every method ran the 34 tasks with 3 seeds (102 run
   AUROC of the binary tasks, VisA and DAGM per task).
 - `runs.csv`: one line per run, from `benchmarks/public/benchmark.py`: best and planned epochs, why it stopped, the
   test metrics, the best validation macro-F1 (RP-CLASS), wall time, input size.
+- `scores.csv`: one line per run, the metrics of its `predictions.csv` as the report's tables use them
+  (`benchmarks/public/report.py --scores`); `benchmarks/public/plots.py` draws the README's charts from it.
 
 How it was run, the command and what the numbers show: `docs/EXPERIMENTS.md`, 2026-11-09.
