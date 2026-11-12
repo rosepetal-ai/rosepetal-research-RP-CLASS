@@ -4,4 +4,4 @@
 """RP-CLASS: image classification for industrial vision. One object, one fixed recipe, ONNX export."""
 from .model import RPCLASS
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'

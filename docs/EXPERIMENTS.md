@@ -15,6 +15,79 @@ Result: table.
 Conclusion: what it decides (DESIGN.md decision N), and what it does not show.
 ```
 
+## 2026-11-12 · lt's new head starts as a linear probe
+
+Question: why does lt sometimes stay at the majority class (5 of 36 VisA runs of the public benchmark v1, never m),
+and what removes it without costing where lt already learns?
+
+Diagnosis (curves of every v1 run and head-only simulations on frozen features, CPU):
+- In those runs the train loss sits from epoch 3 at exactly the loss of predicting the class prior with label smoothing
+  (0.388 for 91 / 9). The model outputs a constant; it is not overfitting.
+- The features are not the problem: a linear probe on lt's frozen features of macaroni1 reaches val macro-F1 0.93.
+- lt's new head learns about ten times slower than m's. Its input, the mean of 784 LayerNorm'd patch tokens, is 14-17
+  times smaller in L1 than HGNetv2's pooled feature, and AdamW moves each weight by about the learning rate per step, so
+  a logit moves by about lr times that L1 size. The head learns the prior inside the warmup and then separates the
+  classes by about 0.01 per epoch, against 0.1 for m.
+- Ruled out: label smoothing, timm's 0.001 head init, EMA, bfloat16, clipping, CLS against mean pooling.
+
+Setup: a development testbed at 9 % NOK, 273 OK + 27 NOK train and 91 + 9 val per task, no test split, nothing from
+the public benchmark:
+- A1-A3: 9 % cuts of real images (set 1, set 3, PCam);
+- B1-B5: composites where the defect is small, grids of set-1 or set-2 parts with one NOK part (3x3, 2x2) and Kather
+  mucosa mosaics with one tumour tile (6x6, 3x3).
+
+lt at 448 px, the recipe otherwise unchanged, RTX 4090.
+- Pilot: lt seeds 0-2 and m seed 0 on each task. The 3 most stall-like tasks (B1, B3, B2) and a control where lt learns
+  (A3) were picked by a rule fixed before the runs.
+- A/B, paired by task and seed, 5 seeds on the stall tasks and 3 on the control:
+  - A0, the recipe;
+  - H15 / H30, the head's learning rate x15 / x30;
+  - P, the head fitted as a linear probe on the frozen features of the clean training images before the first step:
+    label-smoothed multinomial logistic regression, L2 0.03 on centred and RMS-scaled features, L-BFGS, folded back
+    into timm's head.
+- Val escape (VE): the first epoch whose val macro-F1 beats the single-class score by 0.02. Stuck: never.
+
+Result, A/B on the stall tasks (15 runs per arm) and on the control (3):
+
+| arm | stuck | VE > 8 | median VE | mean best val F1 | Wilcoxon p (VE earlier than A0) | control: median VE, mean best val F1 |
+|---|---|---|---|---|---|---|
+| A0 | 10 | 15 | never | 0.589 | - | 5, 0.917 |
+| H15 | 1 | 12 | 17 | 0.805 | 0.0001 | 3, 0.840 |
+| H30 | 1 | 7 | 8 | 0.817 | 0.0001 | 3, 0.879 |
+| P | **0** | 3 | **2** | **0.862** | 0.0000 | 1, 0.877 |
+
+No arm passed every criterion fixed before the runs:
+- P failed "at most 1 run with VE > 8" (it had 3).
+- It failed "no more relapses than A0" (8 against 0). The comparison is lopsided: A0 seldom left the prior, so it
+  seldom could fall back.
+- It failed "control within 2 points" (0.877 against 0.917, 3 seeds, 9 NOK in val).
+
+The guards of P against A0 ran anyway, the same batch and code (lt at 448 px; sets 1-2 by 5-fold out-of-fold test
+predictions, 3 seeds; the development suite at 224 px, test macro-F1, 3 seeds):
+
+| guard | A0 | P |
+|---|---|---|
+| set 1: OOF macro-F1 / AUC of P(NOK) | 97.7 / 99.1 | 98.0 / 99.8 |
+| set 1: OK images rejected to catch every NOK | 59 % | 25 % |
+| set 2: OOF macro-F1 / AUC | 96.9 / 99.1 | 95.8 / 98.5 |
+| set 2: OK images rejected to catch every NOK | 58 % | 79 % |
+| development suite, mean test macro-F1 | 87.8 | 88.1 |
+| flowers / jiawood / kather2016 / pcam | 92.6 / 85.8 / 87.8 / 85.1 | 93.9 / 87.2 / 86.4 / 85.1 |
+| median val NLL at the best epoch | 0.082 | 0.125 |
+| median run time | 89 s | 83 s |
+| float16 TensorRT on 16 set-1 images: same class, largest probability difference | 16/16, 0.0003 | 16/16, 0.002 |
+
+m trained with the new code is identical to the old, number for number (results.csv, every column but the timings).
+
+Conclusion (DESIGN.md decision 6, As built):
+- P becomes lt's head start, the user's choice with these numbers in hand.
+- It removes the stall, 10 of 15 stuck development runs to 0, and on the guards it averages what A0 does: set 1 and
+  the development suite gain a little, set 2 loses 1.1 points of macro-F1 and 0.6 of AUC, and kather2016 1.4.
+- Its best epochs have a higher val NLL, so its probabilities are less calibrated.
+- A model that calls everything OK fails silently, which is worse than a point on one set.
+- Not shown: the effect on the public benchmark. Its lt rerun (v1.1) is still to be run and will be reported as is.
+- Head lr x15 / x30 leave stuck runs; a softer probe (a lower L2) might keep set 2's point, untried.
+
 ## 2026-11-10 · Inference time on three GPUs
 
 Question: how long does each size take to classify one image on the GPUs the models are served on, against

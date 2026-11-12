@@ -52,6 +52,11 @@ for any classification dataset. Anomaly detection is out of scope.
   (doubled: -1.1 points; halved: nothing consistent); label smoothing 0.1 is added (+0.3 points on average, and on set 1
   the OK images rejected to catch every NOK fall from 81 and 95 to 23 and 28 of 160; a confidence then stops at 0.95 for
   two classes).
+- **6 (recipe), lt's head start, 2026-11-12.** lt's new head starts as a linear probe on the frozen features of its
+  training images (RECIPE `head_start`; the CNN sizes are unchanged, number for number). Without it, lt stayed at the
+  majority class on rare, small defects (5 of 36 VisA runs of benchmark v1; 10 of 15 development runs at 9 % NOK; 0
+  with it). Where lt already learns it averages the same, with set 2 one point lower and its probabilities less
+  calibrated (docs/EXPERIMENTS.md, 2026-11-12).
 - **8 (augmentation).** Measured (docs/EXPERIMENTS.md, 2026-11-06): the 8 orientations of the square (flips and turns by
   90 degrees) gained 1.3 to 3.6 points on the private sets and 1.1 to 1.8 on histology, and changed nothing on natural
   photos. They are the default (photometric distortion 0.5, horizontal and vertical flips 0.5, a random turn by a

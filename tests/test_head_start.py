@@ -1,30 +1,21 @@
 # RP-CLASS - Copyright (C) 2026 Rosepetal AI
 # SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Rosepetal-Enterprise-License
 # See LICENSE for licensing terms and commercial inquiries.
-"""How a new head starts: its learning-rate factor and the linear-probe start (RECIPE head_lr_factor, head_start)."""
+"""How a new head starts: the linear-probe start (RECIPE head_start), lt's default."""
 import math
 
 import torch
 
 from rpclass import RPCLASS
-from rpclass.engine.trainer import RECIPE, _fit_probe, _param_groups
+from rpclass.engine.trainer import RECIPE, _fit_probe
 
-from .conftest import make_dataset, make_net
-
-
-def test_a_head_factor_multiplies_only_the_head_lr():
-    net = make_net()
-    head = {id(p) for p in net.head_parameters()}
-    for factor in (1.0, 15.0):
-        for g in _param_groups(net, RECIPE, factor):
-            for p in g['params']:
-                want = RECIPE['lr'] * factor if id(p) in head else RECIPE['backbone_lr']
-                assert g['base_lr'] == want
-    assert all(g['base_lr'] in (RECIPE['lr'], RECIPE['backbone_lr']) for g in _param_groups(net, RECIPE, 1.0))
+from .conftest import make_dataset
 
 
-def test_the_recipe_starts_every_head_as_before():
-    assert RECIPE['head_lr_factor'] == {} and RECIPE['head_start'] == {}
+def test_only_lt_starts_from_a_probe():
+    from rpclass.cfg.schema import SIZES
+    starts = {size: RECIPE['head_start'].get(SIZES[size].backbone) for size in ('s', 'm', 'l', 'lt')}
+    assert starts == {'s': None, 'm': None, 'l': None, 'lt': 'probe'}
 
 
 def test_the_probe_separates_separable_features_with_bounded_logits():

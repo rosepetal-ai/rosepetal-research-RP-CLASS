@@ -55,10 +55,11 @@ from .validator import validate
 RECIPE = dict(lr=1e-3, backbone_lr=1e-4, weight_decay=0.05, betas=(0.9, 0.999), label_smoothing=0.1,
               warmup_steps=2000, warmup_max_fraction=0.05, final_fraction=0.2, final_lr_ratio=0.05, ema_decay=0.9999,
               ema_tau=2000, clip_grad=1.0, freeze_backbone_bn_below=8, clean_fraction=0.04, restore_best=True, seed=0,
-              head_lr_factor={}, head_start={}, probe_l2=0.03, probe_images=4096)
-# head_lr_factor {backbone: factor}: the new head's lr times this for that backbone. head_start {backbone: 'probe'}: the
-# new head starts as a linear probe on the frozen features of the training images (_probe_head). Both empty: every
-# backbone trains as before, number for number. Under test for lt (docs/EXPERIMENTS.md).
+              head_start={'vit-s16-dinov3': 'probe'}, probe_l2=0.03, probe_images=4096)
+# head_start {backbone: 'probe'}: a new model's head starts as a linear probe on the frozen features of its training
+# images (_probe_head). lt's ViT does: its head, fed a small pooled feature, learns at AdamW's step size about ten times
+# slower than a CNN's and stayed at the majority class on rare, small defects (10 of 15 development runs; 0 with the
+# probe start; docs/EXPERIMENTS.md, 2026-11-12). The CNN sizes train as before, number for number.
 NO_DECAY = ('pos_embed', 'token')  # besides biases and norms (1-D): position embeddings and class tokens of ViTs
 PROGRESS_SECONDS = 120           # one progress line this often inside an epoch (none in epochs shorter than this)
 FINAL_EVAL_MARGIN = 1.5          # the final evaluation of val and test, with its plots, in time per validated image
@@ -301,9 +302,9 @@ def _restore_best(path, net, ema):
     ema.updates = 0
 
 
-def _param_groups(net, r, head_factor=1.0):
-    """The new head at lr (times head_factor), the pretrained backbone at backbone_lr; no weight decay on biases, norms,
-    embeddings and tokens."""
+def _param_groups(net, r):
+    """The new head at lr, the pretrained backbone at backbone_lr; no weight decay on biases, norms, embeddings and
+    tokens."""
     head = {id(p) for p in net.head_parameters()}
     groups = {}
     for n, p in net.named_parameters():
@@ -314,7 +315,7 @@ def _param_groups(net, r, head_factor=1.0):
         groups.setdefault((part, decay), []).append(p)
     out = []
     for (part, decay), ps in groups.items():
-        lr = (r['lr'] if head_factor == 1 else r['lr'] * head_factor) if part == 'head' else r['backbone_lr']
+        lr = r['lr'] if part == 'head' else r['backbone_lr']
         out.append({'params': ps, 'lr': lr, 'base_lr': lr, 'weight_decay': r['weight_decay'] if decay else 0.0})
     return out
 
@@ -583,7 +584,7 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
     backbone = model.cfg.backbone
     if state is None and model.net is None and r['head_start'].get(backbone) == 'probe':
         _probe_head(net, ds['records']['train'], imgsz, len(names), r, device, workers)
-    optimizer = torch.optim.AdamW(_param_groups(net, r, r['head_lr_factor'].get(backbone, 1.0)), betas=r['betas'])
+    optimizer = torch.optim.AdamW(_param_groups(net, r), betas=r['betas'])
     scaler = torch.amp.GradScaler('cuda', enabled=amp_dtype == torch.float16)
     ema = ModelEMA(net, r['ema_decay'], r['ema_tau'])
     schedule = Schedule(epochs, steps_per_epoch, r)
