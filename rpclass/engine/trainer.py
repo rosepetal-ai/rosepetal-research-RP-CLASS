@@ -54,7 +54,12 @@ from .validator import validate
 
 RECIPE = dict(lr=1e-3, backbone_lr=1e-4, weight_decay=0.05, betas=(0.9, 0.999), label_smoothing=0.1,
               warmup_steps=2000, warmup_max_fraction=0.05, final_fraction=0.2, final_lr_ratio=0.05, ema_decay=0.9999,
-              ema_tau=2000, clip_grad=1.0, freeze_backbone_bn_below=8, clean_fraction=0.04, restore_best=True, seed=0)
+              ema_tau=2000, clip_grad=1.0, freeze_backbone_bn_below=8, clean_fraction=0.04, restore_best=True, seed=0,
+              head_start={'vit-s16-dinov3': 'probe'}, probe_l2=0.03, probe_images=4096)
+# head_start {backbone: 'probe'}: a new model's head starts as a linear probe on the frozen features of its training
+# images (_probe_head). lt's ViT does: its head, fed a small pooled feature, learns at AdamW's step size about ten times
+# slower than a CNN's and stayed at the majority class on rare, small defects (10 of 15 development runs; 0 with the
+# probe start; docs/EXPERIMENTS.md, 2026-11-12). The CNN sizes train as before, number for number.
 NO_DECAY = ('pos_embed', 'token')  # besides biases and norms (1-D): position embeddings and class tokens of ViTs
 PROGRESS_SECONDS = 120           # one progress line this often inside an epoch (none in epochs shorter than this)
 FINAL_EVAL_MARGIN = 1.5          # the final evaluation of val and test, with its plots, in time per validated image
@@ -315,6 +320,69 @@ def _param_groups(net, r):
     return out
 
 
+def _fit_probe(x, y, num_classes, eps, l2):
+    """A multinomial logistic regression on features x [N, D] (float64) for labels y [N]: the label-smoothed
+    cross-entropy of the recipe plus l2 / 2 * |W|^2, on features centred and divided by their global RMS, solved by
+    L-BFGS. The bias starts at the log of the smoothed class prior. Returns (W [C, D], b [C]) on the raw features."""
+    mu = x.mean(0)
+    rms = (x - mu).pow(2).mean().sqrt().clamp_min(1e-12)
+    z = (x - mu) / rms
+    p = torch.bincount(y, minlength=num_classes).double() / len(y)
+    w = torch.zeros(num_classes, x.shape[1], dtype=torch.float64, requires_grad=True)
+    b = torch.log((1 - eps) * p + eps / num_classes).requires_grad_(True)
+    ce = nn.CrossEntropyLoss(label_smoothing=eps)
+    opt = torch.optim.LBFGS([w, b], lr=1, max_iter=500, history_size=20, line_search_fn='strong_wolfe',
+                            tolerance_grad=1e-10, tolerance_change=1e-14)
+
+    def closure():
+        opt.zero_grad()
+        loss = ce(z @ w.T + b, y) + 0.5 * l2 * w.pow(2).sum()
+        loss.backward()
+        return loss
+
+    opt.step(closure)
+    with torch.no_grad():
+        w_raw = w / rms
+        return w_raw, b - w_raw @ mu
+
+
+def _probe_head(net, records, imgsz, num_classes, r, device, workers):
+    """head_start 'probe': the new head becomes a linear probe of the frozen pretrained features of the training images,
+    letterboxed as validation reads them (no augmentation), at most r['probe_images'] of them (a class-stratified draw
+    with its own generator: the global random state is untouched). In eval mode and float32, before the optimizer and
+    the EMA exist. A ViT whose head learns at AdamW's step size from a small pooled feature otherwise spends its first
+    epochs at the class prior, and on a rare, small defect may never leave it (docs/EXPERIMENTS.md)."""
+    from torch.utils.data import DataLoader, Subset
+    from ..data import collate
+    dataset = ClassificationDataset(records, imgsz)
+    picks = np.arange(len(dataset))
+    if len(picks) > r['probe_images']:
+        rng = np.random.default_rng(r['seed'])
+        labels = np.array([rec['label'] for rec in records])
+        share = r['probe_images'] / len(picks)
+        picks = np.sort(np.concatenate([rng.choice(np.flatnonzero(labels == c), round(share * (labels == c).sum()),
+                                                   replace=False) for c in np.unique(labels)]))
+    loader = DataLoader(Subset(dataset, picks.tolist()), batch_size=32, shuffle=False, num_workers=workers,
+                        collate_fn=collate)
+    was_training = net.training
+    net.eval()
+    feats, ys = [], []
+    with torch.no_grad():
+        for images, targets, _ in loader:
+            x = (images.to(device, non_blocking=True) - net.mean) / net.std
+            feats.append(net.body.forward_head(net.body.forward_features(x), pre_logits=True).float().cpu())
+            ys.append(targets)
+    net.train(was_training)
+    x, y = torch.cat(feats).double(), torch.cat(ys)
+    w, b = _fit_probe(x, y, num_classes, r['label_smoothing'], r['probe_l2'])
+    head = net.body.get_classifier()
+    with torch.no_grad():
+        head.weight.copy_(w.to(head.weight))
+        head.bias.copy_(b.to(head.bias))
+        right = float(((x @ w.T + b).argmax(1) == y).double().mean())
+    log(f'head: fitted on the frozen features of {len(y)} training images (train accuracy {right:.3f})')
+
+
 def _set_train_mode(net, freeze_bn):
     net.train()
     if freeze_bn:
@@ -513,6 +581,9 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
     order = torch.Generator()
     loader = MicroBatches(train_set, micro, order, workers, pin=device.type == 'cuda', seed=r['seed'])
     steps_per_epoch = max(1, math.ceil(len(loader) / accumulate))
+    backbone = model.cfg.backbone
+    if state is None and model.net is None and r['head_start'].get(backbone) == 'probe':
+        _probe_head(net, ds['records']['train'], imgsz, len(names), r, device, workers)
     optimizer = torch.optim.AdamW(_param_groups(net, r), betas=r['betas'])
     scaler = torch.amp.GradScaler('cuda', enabled=amp_dtype == torch.float16)
     ema = ModelEMA(net, r['ema_decay'], r['ema_tau'])

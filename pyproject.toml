@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rpclass"
-version = "0.1.0"
+version = "0.1.1"
 description = "Image classification for industrial vision: one object, one fixed recipe, ONNX export."
 readme = "README.md"
 requires-python = ">=3.10"
