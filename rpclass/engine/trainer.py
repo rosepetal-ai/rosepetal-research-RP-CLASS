@@ -33,6 +33,7 @@ loss is the plain negative log-likelihood, without it. The other values are stil
 import contextlib
 import copy
 import csv
+import gc
 import math
 import os
 import random
@@ -55,11 +56,19 @@ from .validator import validate
 RECIPE = dict(lr=1e-3, backbone_lr=1e-4, weight_decay=0.05, betas=(0.9, 0.999), label_smoothing=0.1,
               warmup_steps=2000, warmup_max_fraction=0.05, final_fraction=0.2, final_lr_ratio=0.05, ema_decay=0.9999,
               ema_tau=2000, clip_grad=1.0, freeze_backbone_bn_below=8, clean_fraction=0.04, restore_best=True, seed=0,
-              head_start={'vit-s16-dinov3': 'probe'}, probe_l2=0.03, probe_images=4096)
-# head_start {backbone: 'probe'}: a new model's head starts as a linear probe on the frozen features of its training
-# images (_probe_head). lt's ViT does: its head, fed a small pooled feature, learns at AdamW's step size about ten times
-# slower than a CNN's and stayed at the majority class on rare, small defects (10 of 15 development runs; 0 with the
-# probe start; docs/EXPERIMENTS.md, 2026-11-12). The CNN sizes train as before, number for number.
+              head_start={'vit-s16-dinov3': 'restart'}, restart_margin=0.02, restart_min_epochs=3, probe_scale=0.1,
+              probe_l2=0.03, probe_images=4096, probe_time_share=0.1)
+# head_start {backbone: how a new model's head starts}; a backbone not named keeps timm's new head:
+#   'restart'  timm's head. At the first validation after the warmup (epoch restart_min_epochs at the earliest), if val
+#              macro-F1 is still within restart_margin of what answering one class scores, training starts over from
+#              the pretrained weights with the head as in 'probe' (once). lt's ViT does: timm makes its new head 1000
+#              times smaller than a CNN's (head_init_scale 0.001) and feeds it a small pooled feature, and it stayed at
+#              the majority class on rare, small defects (10 of 15 development runs). Every head that cures this from
+#              the first step costs where the backbone has to learn new features: counting objects fell from 0.97 to
+#              0.40 with 0.1.1's probe start, to 0.66 with it scaled by 0.1 (docs/EXPERIMENTS.md, 2026-11-16).
+#   'probe'    the linear probe of the pretrained features of the training images, its logits scaled by probe_scale
+#              towards the class prior (_probe_start).
+# The CNN sizes keep timm's head and train as before, number for number.
 NO_DECAY = ('pos_embed', 'token')  # besides biases and norms (1-D): position embeddings and class tokens of ViTs
 PROGRESS_SECONDS = 120           # one progress line this often inside an epoch (none in epochs shorter than this)
 FINAL_EVAL_MARGIN = 1.5          # the final evaluation of val and test, with its plots, in time per validated image
@@ -346,41 +355,88 @@ def _fit_probe(x, y, num_classes, eps, l2):
         return w_raw, b - w_raw @ mu
 
 
-def _probe_head(net, records, imgsz, num_classes, r, device, workers):
-    """head_start 'probe': the new head becomes a linear probe of the frozen pretrained features of the training images,
-    letterboxed as validation reads them (no augmentation), at most r['probe_images'] of them (a class-stratified draw
-    with its own generator: the global random state is untouched). In eval mode and float32, before the optimizer and
-    the EMA exist. A ViT whose head learns at AdamW's step size from a small pooled feature otherwise spends its first
-    epochs at the class prior, and on a rare, small defect may never leave it (docs/EXPERIMENTS.md)."""
+class _StartOver(Exception):
+    """Raised by _train when the head start 'restart' decides to start over; carries the run folder."""
+
+    def __init__(self, run):
+        super().__init__(str(run))
+        self.run = run
+
+
+def _single_class_f1(labels, num_classes):
+    """The macro-F1 of a model that answers one class for every image (the best such class)."""
+    counts = np.bincount(np.asarray(labels, np.int64), minlength=num_classes)
+    n, present = counts.sum(), counts[counts > 0]
+    return float(max(2 * c / (c + n) for c in present) / len(present))
+
+
+def _stratified_order(labels, rng):
+    """Indices of `labels` in an order whose every prefix holds each class in about its share: a random order within a
+    class, the classes interleaved by the fraction of each one reached."""
+    keys = np.empty(len(labels))
+    for c in np.unique(labels):
+        idx = np.flatnonzero(labels == c)
+        keys[idx[rng.permutation(len(idx))]] = (np.arange(len(idx)) + rng.random()) / len(idx)
+    return np.argsort(keys, kind='stable')
+
+
+def _features(net, dataset, picks, batch, device, workers, amp_dtype, deadline=None):
+    """The pooled features the head reads, of dataset[picks], and their labels: float64 on the CPU. Stops after the
+    batch that passes `deadline` (time.time()). Its own loader generator: the global random state is untouched."""
     from torch.utils.data import DataLoader, Subset
     from ..data import collate
-    dataset = ClassificationDataset(records, imgsz)
-    picks = np.arange(len(dataset))
-    if len(picks) > r['probe_images']:
-        rng = np.random.default_rng(r['seed'])
-        labels = np.array([rec['label'] for rec in records])
-        share = r['probe_images'] / len(picks)
-        picks = np.sort(np.concatenate([rng.choice(np.flatnonzero(labels == c), round(share * (labels == c).sum()),
-                                                   replace=False) for c in np.unique(labels)]))
-    loader = DataLoader(Subset(dataset, picks.tolist()), batch_size=32, shuffle=False, num_workers=workers,
-                        collate_fn=collate)
-    was_training = net.training
-    net.eval()
+    loader = DataLoader(Subset(dataset, [int(i) for i in picks]), batch_size=batch, shuffle=False, num_workers=workers,
+                        collate_fn=collate, generator=torch.Generator())
     feats, ys = [], []
-    with torch.no_grad():
+    with torch.no_grad(), _autocast(device, amp_dtype):
         for images, targets, _ in loader:
             x = (images.to(device, non_blocking=True) - net.mean) / net.std
             feats.append(net.body.forward_head(net.body.forward_features(x), pre_logits=True).float().cpu())
             ys.append(targets)
-    net.train(was_training)
-    x, y = torch.cat(feats).double(), torch.cat(ys)
-    w, b = _fit_probe(x, y, num_classes, r['label_smoothing'], r['probe_l2'])
+            if deadline is not None and time.time() >= deadline:
+                break
+    return torch.cat(feats).double(), torch.cat(ys)
+
+
+def _scaled_probe(x, y, num_classes, r):
+    """The linear probe of features x [N, D] for labels y, its logits scaled by r['probe_scale'] towards the smoothed
+    class prior: the weights and the bias's departure from the log prior are scaled. Returns (W, b)."""
+    eps = r['label_smoothing']
+    w, b = _fit_probe(x, y, num_classes, eps, r['probe_l2'])
+    prior = torch.log((1 - eps) * torch.bincount(y, minlength=num_classes).double() / len(y) + eps / num_classes)
+    return w * r['probe_scale'], prior + r['probe_scale'] * (b - prior)
+
+
+def _probe_start(net, records, imgsz, num_classes, r, device, workers, batch, amp_dtype, budget):
+    """head_start 'probe': the new head becomes the scaled linear probe (_scaled_probe) of the pretrained features of
+    the training images, letterboxed as validation reads them (no augmentation), at most r['probe_images'] in a
+    class-stratified order, read in the precision training uses; with a time budget only as many as
+    r['probe_time_share'] of the time left holds. In eval mode, before the optimizer and the EMA exist. Scaled, the
+    probe gives the head its direction without its confidence: unscaled (0.1.1), it starts from logits that already
+    fit the training images and fine-tuning kept fitting them (docs/EXPERIMENTS.md, 2026-11-16)."""
+    t0 = time.time()
+    labels = np.array([rec['label'] for rec in records])
+    picks = _stratified_order(labels, np.random.default_rng(r['seed']))[:r['probe_images']]
+    deadline = t0 + r['probe_time_share'] * max(budget.remaining(), 0.0) if budget is not None else None
+    was_training = net.training
+    net.eval()
+    try:
+        x, y = _features(net, ClassificationDataset(records, imgsz), picks, batch, device, workers, amp_dtype, deadline)
+    finally:
+        net.train(was_training)
+    read = f'{len(y)} of {len(picks)}' if len(y) < len(picks) else f'{len(y)}'
+    need = np.minimum(np.bincount(labels, minlength=num_classes), 2)       # 2 of each class, where it has them
+    if len(y) < min(16, len(labels)) or (np.bincount(y.numpy(), minlength=num_classes) < need).any():
+        log(f'head: no linear probe: its time share read {read} training images, too few; it starts as timm makes it')
+        return
+    w, b = _scaled_probe(x, y, num_classes, r)
     head = net.body.get_classifier()
     with torch.no_grad():
         head.weight.copy_(w.to(head.weight))
         head.bias.copy_(b.to(head.bias))
-        right = float(((x @ w.T + b).argmax(1) == y).double().mean())
-    log(f'head: fitted on the frozen features of {len(y)} training images (train accuracy {right:.3f})')
+    log(f"head: a linear probe of the pretrained features of {read} training images"
+        + (' (its time share)' if len(y) < len(picks) else '') + f", scaled by {r['probe_scale']:g} "
+        f"({time.time() - t0:.0f}s)")
 
 
 def _set_train_mode(net, freeze_bn):
@@ -519,15 +575,24 @@ def train(model, data, imgsz, epochs, patience, batch, device, augment, name, pr
     threads = torch.get_num_threads()
     if device.type != 'cpu' and workers > 0:
         torch.set_num_threads(min(threads, MAIN_THREADS))
+    args = (model, data, imgsz, epochs, patience, batch, device, augment, name, project, workers, save_state, resume,
+            budget, final_eval, pretrained, keep_orientation)
     try:
-        return _train(model, data, imgsz, epochs, patience, batch, device, augment, name, project, workers, save_state,
-                      resume, budget, final_eval, pretrained, keep_orientation)
+        try:
+            return _train(*args)
+        except _StartOver as again:          # head_start 'restart': the run starts over in the same folder
+            run = again.run
+        gc.collect()                          # the first attempt's network, optimizer and loader workers go first
+        if device.type == 'cuda':
+            torch.cuda.empty_cache()
+        return _train(*args, start='probe', run_dir=run)
     finally:
         torch.set_num_threads(threads)
 
 
 def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, project, workers, save_state, resume,
-           budget, final_eval, pretrained, keep_orientation):
+           budget, final_eval, pretrained, keep_orientation, start=None, run_dir=None):
+    """start: the head start, instead of the recipe's (a run that starts over); run_dir: its folder, reused."""
     r = RECIPE
     state = torch.load(resume, map_location='cpu', weights_only=True) if resume else None
     if state and from_dict(state['args']['model']) != model.cfg:
@@ -581,9 +646,12 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
     order = torch.Generator()
     loader = MicroBatches(train_set, micro, order, workers, pin=device.type == 'cuda', seed=r['seed'])
     steps_per_epoch = max(1, math.ceil(len(loader) / accumulate))
-    backbone = model.cfg.backbone
-    if state is None and model.net is None and r['head_start'].get(backbone) == 'probe':
-        _probe_head(net, ds['records']['train'], imgsz, len(names), r, device, workers)
+    start = start or r['head_start'].get(model.cfg.backbone)
+    if state is None and model.net is None and start == 'probe':
+        _probe_start(net, ds['records']['train'], imgsz, len(names), r, device, workers, micro, amp_dtype, budget)
+    # head_start 'restart': one look at the first validation after the warmup (_train's epoch loop)
+    restart_due = state.get('restart_due', False) if state else (model.net is None and start == 'restart')
+    single = _single_class_f1([rec['label'] for rec in ds['records']['val']], len(names))
     optimizer = torch.optim.AdamW(_param_groups(net, r), betas=r['betas'])
     scaler = torch.amp.GradScaler('cuda', enabled=amp_dtype == torch.float16)
     ema = ModelEMA(net, r['ema_decay'], r['ema_tau'])
@@ -619,9 +687,11 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
     first_epoch = epoch                       # its first steps carry the start-up: left out of its cost
 
     # ---- run folder
-    run = Path(state['run']) if state else _run_dir(project, name)
+    run = Path(state['run']) if state else Path(run_dir) if run_dir else _run_dir(project, name)
     if not state:
-        (run / 'weights').mkdir()
+        (run / 'weights').mkdir(exist_ok=bool(run_dir))
+        for stale in (run / 'weights').glob('*.pt'):      # a run starting over: nothing of the first attempt is kept
+            stale.unlink()
     args = {'data': str(Path(data).resolve()), 'imgsz': list(imgsz), 'epochs': epochs,
             'patience': getattr(patience, '__name__', 'function') if callable(patience) else patience,
             'time': budget.seconds if budget is not None else None, 'batch': batch, 'device': str(device),
@@ -629,7 +699,8 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
             'shrink_factor': train_set.shrink_factor,
             'keep_orientation': bool(keep_orientation), 'name': run.name,
             'model': to_dict(model.cfg), 'classes': names, 'micro_batch': micro, 'accumulate': accumulate,
-            'bn_frozen': freeze_bn, 'pretrained': bool(pretrained),
+            'bn_frozen': freeze_bn, 'pretrained': bool(pretrained), 'head_start': start,
+            'started_over': bool(run_dir),
             'recipe': {k: list(v) if isinstance(v, tuple) else v for k, v in r.items()}}
     if state:
         args['name'] = state['args']['name']
@@ -781,6 +852,14 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
                     log(f'time: clean images from epoch {clean_from + 1}')
                 if epoch + 1 == 1 and schedule.end == 1 and not clean:
                     log('warning: the first epoch used up the time budget; training ends without a clean epoch')
+            if (restart_due and (epoch + 1) * steps_per_epoch >= schedule.warmup
+                    and epoch + 1 >= r['restart_min_epochs']):
+                restart_due = False                       # one look, at the first validation after the warmup
+                if metrics.macro_f1 <= single + r['restart_margin'] and epoch + 1 < schedule.end:
+                    log(f'\nhead: val macro-F1 {metrics.macro_f1:.3f} after the warmup, what answering one class '
+                        f'scores ({single:.3f}): training starts over from the pretrained weights, the head as a '
+                        f'linear probe')
+                    raise _StartOver(run)
             if save_state:
                 tmp = run / 'weights' / 'state.pt.tmp'
                 torch.save({'run': str(run.resolve()), 'epoch': epoch + 1, 'net': net.state_dict(),
@@ -791,7 +870,7 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
                             'final_epochs': schedule.final_epochs, 'warmup': schedule.warmup,
                             'decay_from': schedule.decay_from, 'decay_p0': schedule.decay_p0,
                             'warmup_from': schedule.warmup_from, 'warmup_f0': schedule.warmup_f0,
-                            'clean_from': clean_from, 'early': early,
+                            'clean_from': clean_from, 'early': early, 'restart_due': restart_due,
                             'budget': budget.state() if budget is not None else None}, tmp)
                 os.replace(tmp, run / 'weights' / 'state.pt')
             epoch += 1

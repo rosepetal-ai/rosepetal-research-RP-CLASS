@@ -15,6 +15,100 @@ Result: table.
 Conclusion: what it decides (DESIGN.md decision N), and what it does not show.
 ```
 
+## 2026-11-16 · lt starts over when it still answers one class; the export checks off by default
+
+Question: 0.1.1's probe start removed lt's stall at the majority class, but the public benchmark's lt rerun (v1.1,
+reported only) fell on CLEVR count from 79.1 to 32.5 test macro-F1 (VisA rose from 82.4 to 93.5). What start keeps the
+cure without that cost? Separately: why did a platform training of lt fail after its training was done?
+
+Diagnosis of the probe start (curves of the v1.1 runs, train and val only):
+- On every other public dataset the probe start lifts epoch 1's val macro-F1 (to 0.72-1.00, from 0.05-0.70). On
+  CLEVR the probe is perfect on its 300 training images, and after the first epoch val is worse than chance (val loss
+  3.09, chance 2.08). Fine-tuning from it fits the training images further (train loss 0.54-0.69 at epoch 49, against
+  0.65-1.09 without it) while val stays near 0.3: it memorizes instead of learning to count.
+- 384 features separate a few hundred images whatever their labels, so the probe's training accuracy (0.99-1.00 on
+  every dataset) tells nothing.
+- timm builds the ViT's new head with `head_init_scale` 0.001: weights of std 2e-5, against 1.3e-2 for m's head, so
+  the backbone gets almost no gradient until the head has grown. (2026-11-12 ruled the init out with head-only runs on
+  frozen features, which cannot show this.)
+
+Setup: the 2026-11-12 testbed (stall tasks B1, B3, B2 x 5 data draws; control A3 x 3 seeds), its A0 and P runs reused,
+plus a counting task made for this, nothing from the public benchmark: synthetic scenes of 3 to 10 shaded spheres, cubes
+and cylinders on a floor, 480 x 320, 8 classes (the count), 300 train / 100 val, 5 seeds. It separates the starts as
+CLEVR does: A0 0.99 / 0.90 / 0.99 / 0.99 / 0.99, P 0.36-0.44. lt at 448 px, the recipe otherwise unchanged, RTX 4090.
+A rule fixed before the runs, for each new arm: at most 1 of the 15 stall runs stuck; stall mean best val macro-F1 >=
+P - 0.03; counting >= A0 - 0.03; control >= A0 - 0.02; every run present.
+
+Arms, in the order they ran (each one written down before its runs):
+- N, N3, N5: timm's head without the 0.001, a fresh normal head of std 0.02, 0.05, 0.1.
+- S: P's probe with its logits scaled by 0.1 towards the class prior (its direction without its confidence).
+- R: timm's head; at the first validation after the warmup, if val macro-F1 is within 0.02 of the single-class score,
+  the head is replaced in place by S's.
+- RS: as R, but the run starts over from the pretrained weights with S's head (the code of 0.1.2). Emulated first from
+  the A0 and S runs; this row is the real code.
+- Rejected before any run: keeping the probe only if its validation beats probes fitted to shuffled labels. On frozen
+  features it kept the probe on counting (val loss 1.59 against 2.41 at best shuffled), where P fails anyway, and
+  rejected it on B1, where P cures the stall.
+
+Result (val macro-F1; VE: the first epoch above the single-class score + 0.02):
+
+| arm | stuck (of 15) | median VE | stall mean best | relapses | stall median NLL | control mean best | counting mean best | passes |
+|---|---|---|---|---|---|---|---|---|
+| A0 (0.1.0) | 10 | never | 0.589 | 0 | 0.302 | 0.917 | 0.972 | - |
+| P (0.1.1) | 0 | 2 | 0.862 | 8 | 0.177 | 0.877 | 0.395 | - |
+| N (0.02) | 5 | 25 | 0.720 | 0 | 0.230 | 0.836 | 0.945 | no |
+| N3 (0.05) | 3 | 18 | 0.733 | 0 | 0.233 | 0.921 | 0.839 | no |
+| N5 (0.1) | 0 | 10 | 0.839 | 0 | 0.152 | 0.892 | 0.746 | no |
+| S | 0 | 5 | 0.881 | 0 | 0.147 | 0.916 | 0.664 | no |
+| R | 9 | never | 0.600 | 1 | 0.300 | 0.863 | 0.969 | no |
+| **RS (0.1.2)** | **0** | 11 | **0.887** | **0** | **0.136** | 0.905 | **0.982** | **yes** |
+
+- Every start that cures the stall from the first step costs on counting, the more the stronger the head starts (N,
+  N3, N5; S; P). The two kinds of task want opposite starts.
+- What tells them apart is visible at the end of the warmup: the 15 stall runs all still answered one class at epoch 5,
+  no counting run did (val macro-F1 0.13-0.46 by then; the single-class score + 0.02 is 0.05). RS started over in those
+  15 and in 1 of the 3 control runs, and in no counting run, which therefore trains as A0.
+- Replacing the head in place at that point (R) leaves 9 of 15 stuck; starting over, with the warmup run again, leaves
+  none. RS's median VE counts the 5 epochs of the first attempt.
+- With a time budget, as the platform trains (240 s, at most 500 epochs, 2 seeds each): the counting runs did not
+  start over (best val 0.980 and 0.929), the B1 runs did and left the stall (0.794 and 0.770).
+
+Guards of RS against A0, those of 2026-11-12 with A0's runs reused (lt at 448 px; sets 1-2 by 5-fold out-of-fold test
+predictions, 3 seeds; the development suite at 224 px, test macro-F1, 3 seeds). No guard run started over, so RS
+trained them as A0 does:
+
+| guard | A0 | RS |
+|---|---|---|
+| set 1: OOF macro-F1 / AUC of P(NOK) | 97.7 / 99.1 | 97.3 / 99.2 |
+| set 1: OK images rejected to catch every NOK | 59 % | 63 % |
+| set 2: OOF macro-F1 / AUC | 96.9 / 99.1 | 96.8 / 98.9 |
+| set 2: OK images rejected to catch every NOK | 58 % | 60 % |
+| development suite, mean test macro-F1 | 87.8 | 87.8 (every run identical) |
+| median val NLL at the best epoch | 0.082 | 0.082 |
+| float16 TensorRT on 16 set-1 images: same class, largest probability difference | 16/16, 0.0003 | 16/16, 0.0003 |
+
+- Every guard passed but run time: RS's median 126 s against 89 s for A0's runs of four days earlier, with other users'
+  jobs on the machine now (load average 9-14). The same development run alternated between the two codes gave 69, 81
+  and 77 s for A0 and 81, 82 and 96 s for RS, with identical results; a run that does not start over computes nothing
+  more than one comparison per epoch.
+- m trained with the new code is identical to the old, number for number.
+
+A platform training of lt at 1024 x 2048 on a T4 (0.1.1) ended in an out-of-memory failure after its only epoch:
+- The probe start read 1044 images in float32 at 1.5 images/s, 11.4 of the 16.5 minutes the time budget left. One
+  epoch then took 12.6 minutes. 0.1.2 reads the probe's images in the precision training uses and at most 10 % of the
+  time left, and only in a run that starts over.
+- Then the export's float16 check. It runs the ONNX model once with every internal tensor as an output: measured on a
+  288 x 576 export and scaled by each tensor's token dimensions, 1.35 GB at 448 x 448 but 46.5 GB at 1024 x 2048, 36 GB
+  of it the 24 attention maps of 8197 x 8197 tokens. The machine had 52 GB.
+
+Conclusion (DESIGN.md decision 6, As built, and 14):
+- RS becomes lt's head start (RECIPE `head_start` 'restart'); the CNN sizes keep timm's head.
+- It removes the stall as P did (0 of 15 stuck) with a higher stall score, no relapse and better-calibrated
+  probabilities, and leaves counting where A0 had it.
+- A run that starts over pays its warmup twice: 5 of 100 epochs here, 5 % of a time budget.
+- Both export checks are off by default, as in RP-OD; `export(check=True)` runs them.
+- Not shown: the public benchmark with 0.1.2, to be run and reported as is.
+
 ## 2026-11-12 · lt's new head starts as a linear probe
 
 Question: why does lt sometimes stay at the majority class (5 of 36 VisA runs of the public benchmark v1, never m),

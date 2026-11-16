@@ -52,11 +52,14 @@ for any classification dataset. Anomaly detection is out of scope.
   (doubled: -1.1 points; halved: nothing consistent); label smoothing 0.1 is added (+0.3 points on average, and on set 1
   the OK images rejected to catch every NOK fall from 81 and 95 to 23 and 28 of 160; a confidence then stops at 0.95 for
   two classes).
-- **6 (recipe), lt's head start, 2026-11-12.** lt's new head starts as a linear probe on the frozen features of its
-  training images (RECIPE `head_start`; the CNN sizes are unchanged, number for number). Without it, lt stayed at the
-  majority class on rare, small defects (5 of 36 VisA runs of benchmark v1; 10 of 15 development runs at 9 % NOK; 0
-  with it). Where lt already learns it averages the same, with set 2 one point lower and its probabilities less
-  calibrated (docs/EXPERIMENTS.md, 2026-11-12).
+- **6 (recipe), lt's head start, 2026-11-16.** lt starts with timm's head. If validation still scores what answering
+  one class does at the end of the warmup, the run starts over once from the pretrained weights, its head the linear
+  probe of the pretrained features of its training images scaled by 0.1 (RECIPE `head_start` 'restart'; the CNN sizes
+  are unchanged, number for number). Without it, lt stayed at the majority class on rare, small defects (5 of 36 VisA
+  runs of benchmark v1; 10 of 15 development runs at 9 % NOK; 0 with it). 0.1.1 started every lt run from the
+  unscaled probe: that cured the stall too, but broke tasks where the backbone has to learn new features (counting
+  objects: 0.97 to 0.40), and every start strong enough to cure the stall from the first step cost there. Starting
+  over only where the stall shows keeps both (docs/EXPERIMENTS.md, 2026-11-16 and 2026-11-12).
 - **8 (augmentation).** Measured (docs/EXPERIMENTS.md, 2026-11-06): the 8 orientations of the square (flips and turns by
   90 degrees) gained 1.3 to 3.6 points on the private sets and 1.1 to 1.8 on histology, and changed nothing on natural
   photos. They are the default (photometric distortion 0.5, horizontal and vertical flips 0.5, a random turn by a
@@ -71,7 +74,10 @@ for any classification dataset. Anomaly detection is out of scope.
   predicted class (a near tie swaps it under rounding, RP-OD's problem). A second check runs the model once with every
   internal tensor exposed and warns when a value exceeds float16 (float16 engines are the usual choice for serving; the
   DINOv3 ViT's attention does exceed it). Any failure of a check, ONNX Runtime's own errors included, prints a warning
-  and keeps the export.
+  and keeps the export. Since 0.1.2 both checks are off by default, as in RP-OD (`export(check=True)` runs them): the
+  float16 check holds every internal tensor of one image at once, 1.4 GB for lt at 448 x 448 but 46 GB at 1024 x 2048,
+  and a platform training at that size ran out of memory there after its training was done (docs/EXPERIMENTS.md,
+  2026-11-16).
 - **15 (contract).** The epoch and validation lines are pinned whole by `tests/test_budget.py`, train and val times with
   one decimal (a parser can sum them); the GPU-memory error says 'out of memory', so that a job runner can recognise it
   (to retry on a larger GPU, say); RP-OD's message lacks the words. A time-budget call (time, a reserve function,

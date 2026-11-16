@@ -171,13 +171,15 @@ class RPCLASS:
         self._require_trained('predict')
         return _predict(self.net, self.names, self.imgsz, source, color, device or _default_device())
 
-    def export(self, output_dir=None):
-        """model.onnx + config.json for serving (contract in rpclass/engine/exporter.py). Returns the folder."""
+    def export(self, output_dir=None, check=False):
+        """model.onnx + config.json for serving (contract in rpclass/engine/exporter.py). Returns the folder. check:
+        compare ONNX Runtime with PyTorch and look for values float16 cannot hold (off by default: see export_onnx)."""
         self._require_trained('export')
         if output_dir is None:
             output_dir = (self.ckpt_path.with_name(f'{self.ckpt_path.stem}_export') if self.ckpt_path
                           else 'rpclass_export')
-        return export_onnx(self.net, size_of(self.cfg) or self.cfg.backbone, self.names, self.imgsz, output_dir)
+        return export_onnx(self.net, size_of(self.cfg) or self.cfg.backbone, self.names, self.imgsz, output_dir,
+                           check=check)
 
     def _require_trained(self, what):
         if self.net is None or not self.names:
