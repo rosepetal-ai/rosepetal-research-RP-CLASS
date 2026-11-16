@@ -135,9 +135,11 @@ What the results show:
   and 2, macaroni2 seeds 1 and 2, pcb3 seed 0. Its validation macro-F1 never rose above 47.6, the score of calling
   every image OK, until patience ended the run at epoch 41. m never did this in any of its 75 binary runs. YOLO11s-cls
   ended 7 of its 75 binary runs near a single class, with a test macro-F1 under 56. This shows on validation, so the
-  library can notice it; reproducing it and dealing with it belongs on development data, not on this benchmark. Since
-  0.1.1 lt's head starts as a linear probe, which removed the stall on development data (docs/EXPERIMENTS.md,
-  2026-11-12); v1's lt numbers predate it.
+  library can notice it; reproducing it and dealing with it belongs on development data, not on this benchmark. v1's
+  lt numbers predate the fix. 0.1.1 started lt's head as a linear probe; its rerun (v1.1, reported only, not
+  published as a version of the results) lifted VisA from 82.4 to 93.5 and dropped CLEVR count from 79.1 to 32.5.
+  0.1.2 starts over only a run still answering one class after its warmup, which kept counting on development data
+  (docs/EXPERIMENTS.md, 2026-11-16); its rerun is still to be reported.
 
 Caveats on reading these numbers:
 
