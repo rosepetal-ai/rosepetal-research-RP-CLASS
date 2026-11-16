@@ -110,12 +110,25 @@ def test_a_failed_check_keeps_the_export(trained_ckpt, tmp_path, monkeypatch, ca
     from onnxruntime.capi.onnxruntime_pybind11_state import Fail
     for error in (RuntimeError('exported ONNX differs from PyTorch'), Fail('the runtime gave up')):
         monkeypatch.setattr(E, '_check', lambda *args, e=error: (_ for _ in ()).throw(e))
-        out = RPCLASS(trained_ckpt).export(tmp_path / type(error).__name__)
+        out = RPCLASS(trained_ckpt).export(tmp_path / type(error).__name__, check=True)
         assert (out / 'model.onnx').exists() and 'warning: export parity check' in capsys.readouterr().out
 
 
+def test_the_export_checks_are_off_by_default(trained_ckpt, tmp_path, monkeypatch):
+    """A ViT's float16 check at 1024 x 2048 needs 46 GB: it once took a training machine down after its only epoch.
+    Off by default (RP-OD's choice too); export(check=True) runs both checks."""
+    import rpclass.engine.exporter as E
+    ran = []
+    monkeypatch.setattr(E, '_check', lambda *a: ran.append('parity'))
+    monkeypatch.setattr(E, '_fp16_warning', lambda *a: ran.append('float16'))
+    RPCLASS(trained_ckpt).export(tmp_path / 'off')
+    assert ran == []
+    RPCLASS(trained_ckpt).export(tmp_path / 'on', check=True)
+    assert ran == ['parity', 'float16']
+
+
 def test_an_intact_export_passes_its_checks_quietly(trained_ckpt, tmp_path, capsys):
-    RPCLASS(trained_ckpt).export(tmp_path / 'e')
+    RPCLASS(trained_ckpt).export(tmp_path / 'e', check=True)
     assert 'warning' not in capsys.readouterr().out
 
 
@@ -125,7 +138,7 @@ def test_values_that_float16_cannot_hold_are_reported(trained_ckpt, tmp_path, ca
     m = RPCLASS(trained_ckpt)
     with torch.no_grad():
         m.net.body.head.fc.weight.mul_(1e9)
-    m.export(tmp_path / 'e')
+    m.export(tmp_path / 'e', check=True)
     out = capsys.readouterr().out
     assert 'exceed what float16 holds' in out and "check the float16 engine's answer" in out
 
@@ -164,11 +177,11 @@ def test_a_vit_exports_its_attention_with_centred_keys(tmp_path, capsys, monkeyp
     net = make_net(arch=Architecture('vit-s16-dinov3'))
     attention = [m for m in net.modules() if type(m).__name__ == 'EvaAttention']
     before = [m.fused_attn for m in attention]
-    E.export_onnx(net, 'lt', {0: 'a', 1: 'b', 2: 'c'}, [64, 64], tmp_path / 'centred')
+    E.export_onnx(net, 'lt', {0: 'a', 1: 'b', 2: 'c'}, [64, 64], tmp_path / 'centred', check=True)
     assert 'export parity check' not in capsys.readouterr().out
     assert eva.F is torch.nn.functional and [m.fused_attn for m in attention] == before
     monkeypatch.setattr(E, '_float16_safe_attention', lambda net: contextlib.nullcontext())
-    E.export_onnx(net, 'lt', {0: 'a', 1: 'b', 2: 'c'}, [64, 64], tmp_path / 'plain', check=False)
+    E.export_onnx(net, 'lt', {0: 'a', 1: 'b', 2: 'c'}, [64, 64], tmp_path / 'plain')
 
     def means(folder):
         return sum(n.op_type == 'ReduceMean' for n in onnx.load(tmp_path / folder / 'model.onnx').graph.node)

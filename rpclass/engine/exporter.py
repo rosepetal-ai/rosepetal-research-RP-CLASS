@@ -118,9 +118,12 @@ def trt_profile(imgsz, max_batch=MAX_BATCH, stride=32):
              'granularity': [1, 1, stride, stride]}]
 
 
-def export_onnx(net, size, names, imgsz, output_dir, check=True):
-    """size: the model size, written to config.json. check: compare ONNX Runtime with PyTorch on random images, and
-    look for values that float16 cannot hold; both only warn: a failed check never removes the export."""
+def export_onnx(net, size, names, imgsz, output_dir, check=False):
+    """size: the model size, written to config.json. check (off by default, as in RP-OD): compare ONNX Runtime with
+    PyTorch on random images, and look for values that float16 cannot hold; both only warn: a failed check never
+    removes the export. The float16 check holds every internal tensor of one image at once: 1.4 GB for the ViT at
+    448 x 448, 46 GB at 1024 x 2048 (its attention maps grow with the square of the tokens), more than a training
+    machine had left (docs/EXPERIMENTS.md, 2026-11-16)."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     onnx_path = output_dir / 'model.onnx'
