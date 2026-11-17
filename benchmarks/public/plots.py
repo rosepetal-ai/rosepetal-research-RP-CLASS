@@ -3,7 +3,7 @@
 # See LICENSE for licensing terms and commercial inquiries.
 """The README's charts of the public benchmark, from the scores of every run.
 
-    python3 benchmarks/public/plots.py [benchmarks/public/results/v1/scores.csv] [docs/images]
+    python3 benchmarks/public/plots.py [benchmarks/public/results/v1.2/scores.csv] [docs/images]
 
 scores.csv is what `benchmarks/public/report.py --scores` writes, from the same predictions.csv files as the report's
 tables. A dataset's score for a seed is the mean over its tasks; a group's is the mean over its datasets.
@@ -27,7 +27,7 @@ NAMES = {'eurosat': 'EuroSAT', 'caltech101': 'Caltech-101', 'nct_crc_he': 'NCT-C
          'deepweeds': 'DeepWeeds', 'beans': 'Beans', 'clevr_count': 'CLEVR count', 'visa': 'VisA', 'dagm': 'DAGM',
          'xsdd': 'X-SDD', 'rawfabrid': 'RAW-FABRID', 'wood': 'Wood', 'tyres': 'Tyres', 'sdnet': 'SDNET2018'}
 SURFACE, INK, INK_2, GRID = '#fcfcfb', '#0b0b0b', '#52514e', '#e4e3df'
-SUBTITLE = 'Public benchmark v1 · 14 public datasets, each cut to about 300 training images · 3 seeds per method'
+SUBTITLE = 'Public benchmark v1.2 · 14 public datasets, each cut to about 300 training images · 3 seeds per method'
 
 
 def load(path):
@@ -138,7 +138,7 @@ def chart_datasets(scores, out):
 
 def main():
     here = Path(__file__).resolve().parent
-    src = Path(sys.argv[1]) if len(sys.argv) > 1 else here / 'results' / 'v1' / 'scores.csv'
+    src = Path(sys.argv[1]) if len(sys.argv) > 1 else here / 'results' / 'v1.2' / 'scores.csv'
     out = Path(sys.argv[2]) if len(sys.argv) > 2 else here.parents[1] / 'docs' / 'images'
     out.mkdir(parents=True, exist_ok=True)
     scores = load(src)

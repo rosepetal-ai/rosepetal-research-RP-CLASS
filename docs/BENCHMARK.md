@@ -98,6 +98,49 @@ same manifests and never mix in published numbers.
 binary tasks, AUROC. Per dataset: mean and standard deviation over the 3 seeds. The headline is the unweighted mean
 over the 14 datasets, with general and industrial means apart; per-category results in an appendix.
 
+## Results, version 1.2 (2026-11-17)
+
+RP-CLASS lt reran with 0.1.2, where a run that still answers one class after its warmup starts over once with a
+linear-probe head. It used the same command, flags and GPU as version 1: 34 tasks, 3 seeds, 102 runs. RP-CLASS m
+and YOLO11s-cls are version 1's runs: their code did not change, and m trains with 0.1.2 exactly as before, number for
+number. The tables are in `benchmarks/public/results/v1.2/report.md`, every run in `runs.csv` there, and the README's
+charts come from its `scores.csv`.
+
+Headline: macro-F1, the unweighted mean over the datasets (mean ± std over the seeds).
+
+| method | all 14 | general (7) | industrial (7) |
+|---|---|---|---|
+| RP-CLASS lt (DINOv3 ViT-S/16) | **89.5 ± 0.3** | **89.8 ± 0.3** | **89.2 ± 0.7** |
+| RP-CLASS m (HGNetv2-B2) | 85.0 ± 0.6 | 82.4 ± 0.7 | 87.6 ± 0.7 |
+| YOLO11s-cls | 77.1 ± 1.2 | 77.8 ± 0.8 | 76.3 ± 2.5 |
+
+Per dataset: macro-F1, mean over the seeds (the spreads are in the report).
+
+| | EuroSAT | Caltech-101 | NCT-CRC-HE | BloodMNIST | DeepWeeds | Beans | CLEVR count | VisA | DAGM | X-SDD | RAW-FABRID | Wood | Tyres | SDNET2018 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| lt (v1.2) | **93.8** | 93.8 | **90.6** | 97.1 | **78.2** | 95.6 | **79.1** | 92.4 | 99.6 | **99.4** | **85.5** | **72.7** | **96.5** | **78.7** |
+| lt (v1) | 93.8 | 93.8 | 90.6 | 97.1 | 78.2 | 95.6 | 79.1 | 82.4 | 99.8 | 99.4 | 84.6 | 72.7 | 97.2 | 78.7 |
+| m | 92.3 | **94.0** | 87.9 | **97.3** | 69.1 | **96.2** | 39.8 | **94.0** | **99.8** | 98.3 | 80.0 | 70.3 | 95.7 | 75.3 |
+| YOLO11s-cls | 87.5 | 89.9 | 81.3 | 90.6 | 67.8 | 92.4 | 35.0 | 84.8 | 97.2 | 94.1 | 47.1 | 66.6 | 90.0 | 54.3 |
+
+What changed against version 1:
+
+- **VisA, 82.4 to 92.4.** 22 of the 36 VisA runs started over, among them the five of version 1 that never left the
+  majority class. Every VisA run now ends at a best val macro-F1 of 86.7 or more. m still leads there (94.0).
+- **Elsewhere.** One RAW-FABRID run started over; no run of any other dataset did. On 10 datasets lt's runs are
+  version 1's, number for number.
+- **DAGM, Tyres and VisA's other runs.** They moved for another reason: since 2026-11-09, training reads images
+  larger than the training size shrunk (docs/EXPERIMENTS.md), after version 1 ran.
+- **lt against m and YOLO11s-cls.** lt now leads YOLO11s-cls on all 14 datasets. It leads m by 4.5 points overall
+  and by 1.6 on the industrial sets, where m leads on VisA and DAGM.
+- **0.1.1 (v1.1, reported only).** Its probe start reached 93.5 on VisA but fell to 32.5 on CLEVR count (86.6
+  overall). It gained 1.7 to 3.6 points on EuroSAT, Caltech-101 and DeepWeeds, which 0.1.2 does not keep
+  (docs/EXPERIMENTS.md, 2026-11-16).
+
+These are one-time test numbers, and nothing in the library changed because of them. 0.1.2 was chosen on development
+data. The caveats of version 1 hold here too: 224 px on 11 of the 14 datasets, and Caltech-101 was a retrieval seed of
+DINOv3.
+
 ## Results, version 1 (2026-11-09)
 
 Every method ran the 34 tasks with all 3 seeds (102 runs each) on one RTX 4090. RP-CLASS m is HGNetv2-B2 and lt is
@@ -139,7 +182,7 @@ What the results show:
   lt numbers predate the fix. 0.1.1 started lt's head as a linear probe; its rerun (v1.1, reported only, not
   published as a version of the results) lifted VisA from 82.4 to 93.5 and dropped CLEVR count from 79.1 to 32.5.
   0.1.2 starts over only a run still answering one class after its warmup, which kept counting on development data
-  (docs/EXPERIMENTS.md, 2026-11-16); its rerun is still to be reported.
+  (docs/EXPERIMENTS.md, 2026-11-16); its rerun is version 1.2, above.
 
 Caveats on reading these numbers:
 

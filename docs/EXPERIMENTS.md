@@ -15,6 +15,25 @@ Result: table.
 Conclusion: what it decides (DESIGN.md decision N), and what it does not show.
 ```
 
+## 2026-11-17 · Public benchmark, version 1.2: lt with 0.1.2
+
+Question: what 0.1.2 does on the public benchmark. This reports test numbers and decides nothing; 0.1.2 was chosen on
+development data (2026-11-16).
+
+Setup: version 1's command and flags for lt (`benchmarks/public/benchmark.py ... --models vit-s16-dinov3 --seeds 0 1 2
+--augment default --workers 12 --final`), the 34 tasks, RTX 4090, in two processes. The CLEVR count runs were lost to a
+full disk on the shared machine and run again. m and YOLO11s-cls are version 1's runs. `benchmarks/public/report.py`
+wrote `benchmarks/public/results/v1.2`.
+
+Result: lt 89.5 ± 0.3 macro-F1 over the 14 datasets (version 1: 88.8 ± 0.3; m 85.0, YOLO11s-cls 77.1); industrial
+89.2 (87.8). VisA 82.4 to 92.4: 22 of its 36 runs started over, the 5 that never left the majority class in version 1
+among them, and every VisA run reached a best val macro-F1 of 86.7 or more. One RAW-FABRID run started over and no
+other. On 10 datasets every lt run is version 1's, number for number. DAGM and Tyres moved because training now reads
+large images shrunk (2026-11-09). CLEVR count 79.1, as in version 1 (0.1.1: 32.5).
+
+Conclusion: on the public benchmark too, 0.1.2 removes lt's stall and leaves the rest as it was. The tables are in
+docs/BENCHMARK.md, Results, version 1.2, and the README shows version 1.2.
+
 ## 2026-11-16 · lt starts over when it still answers one class; the export checks off by default
 
 Question: 0.1.1's probe start removed lt's stall at the majority class, but the public benchmark's lt rerun (v1.1,
@@ -107,7 +126,7 @@ Conclusion (DESIGN.md decision 6, As built, and 14):
   probabilities, and leaves counting where A0 had it.
 - A run that starts over pays its warmup twice: 5 of 100 epochs here, 5 % of a time budget.
 - Both export checks are off by default, as in RP-OD; `export(check=True)` runs them.
-- Not shown: the public benchmark with 0.1.2, to be run and reported as is.
+- The public benchmark with 0.1.2 is version 1.2 (2026-11-17), reported as is.
 
 ## 2026-11-12 · lt's new head starts as a linear probe
 
