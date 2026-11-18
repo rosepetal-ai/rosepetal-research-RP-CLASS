@@ -690,8 +690,8 @@ def _train(model, data, imgsz, epochs, patience, batch, device, augment, name, p
     run = Path(state['run']) if state else Path(run_dir) if run_dir else _run_dir(project, name)
     if not state:
         (run / 'weights').mkdir(exist_ok=bool(run_dir))
-        for stale in (run / 'weights').glob('*.pt'):      # a run starting over: nothing of the first attempt is kept
-            stale.unlink()
+        for leftover in (run / 'weights').glob('*.pt'):   # a run starting over: nothing of the first attempt is kept
+            leftover.unlink()
     args = {'data': str(Path(data).resolve()), 'imgsz': list(imgsz), 'epochs': epochs,
             'patience': getattr(patience, '__name__', 'function') if callable(patience) else patience,
             'time': budget.seconds if budget is not None else None, 'batch': batch, 'device': str(device),
