@@ -1,3 +1,9 @@
+---
+title: "RP-CLASS public benchmark"
+description: "The public benchmark of RP-CLASS: 14 public datasets cut to about 300 training images, the frozen split protocol, and the results of RP-CLASS m and lt against YOLO11s-cls."
+sidebar_label: "Public Benchmark"
+---
+
 # RP-CLASS public benchmark
 
 A comparison of RP-CLASS with other classifiers on public datasets, cut to the size of a typical inspection dataset
@@ -9,7 +15,7 @@ list were fixed on 2026-11-06, before any method ran on them. What gets publishe
 
 14 datasets, 7 general and 7 industrial, 34 tasks: VisA (12 objects) and DAGM (10 textures) run one OK / NOK task per
 category and count once, as the mean of their tasks. Every licence allows commercial use; each was read at its source on
-2026-11-05. Their authors, sources and licences, with links: `docs/DATASETS.md`.
+2026-11-05. Their authors, sources and licences, with links: [Datasets](./DATASETS.md).
 
 | | Dataset | Task as used | Test | Licence |
 |---|---|---|---|---|
@@ -127,7 +133,7 @@ What the results show:
 - **Against YOLO11s-cls.** m leads YOLO11s-cls on all 14 datasets, and lt on 13 of them (all but VisA). On the
   headline, m is 7.9 points ahead and lt 11.7.
 - **lt against m.** lt leads m by 3.8 points overall, mostly on the general sets. CLEVR's counting alone (79.1
-  against 39.8) accounts for 2.8 of those points. Without CLEVR, lt leads by 1.0 point overall and by 2.0 on the
+  against 39.8) accounts for 2.8 of those points. Without CLEVR, lt leads by 1.1 points overall and by 2.1 on the
   general sets.
 - **Industrial sets.** lt and m tie on average (87.8 and 87.6). m leads on VisA (94.0 against 82.4; AUROC 98.9 against
   94.8), and lt leads on the other industrial sets except DAGM, where they tie.
@@ -168,7 +174,7 @@ Caveats on reading these numbers:
 on them: every image used (file, class, group, split, which seeds train on it, SHA-256, its path in the original
 download) and each task's counts, provenance and dedup record. 34 tasks: 25 official tests used whole (VisA's 12
 products, 240-442 images each, DAGM's 10 textures, 575 or 1,150, CLEVR's 15,000, NCT-CRC-HE's 7,180 and BloodMNIST's
-3,420), 9 tests built, from 518 (Beans) to 5,000 (EuroSAT) images; val 96-111 images, except Caltech-101's 510 (5 a
+3,420), 9 tests built, from 518 (Beans) to 5,000 (EuroSAT) images; val 98-111 images, except Caltech-101's 510 (5 a
 class); about 300 training images per seed (Caltech-101: 1,955). Changing one
 needs a new version and a rerun of every method. The development suite's are in `benchmarks/dev/manifests/`.
 

@@ -1,6 +1,12 @@
+---
+title: "RP-CLASS datasets"
+description: "The datasets of the RP-CLASS public benchmark and of its development suite, with their creators, sources and licences."
+sidebar_label: "Datasets"
+---
+
 # Datasets
 
-The datasets of the public benchmark (`docs/BENCHMARK.md`) and of the development suite, with their creators, where
+The datasets of the public benchmark ([Public Benchmark](./BENCHMARK.md)) and of the development suite, with their creators, where
 they come from and their licences. Each dataset's script in `benchmarks/public/` or `benchmarks/dev/` records what was
 read at the source (file sizes, checksums, the licence text), and each manifest its licence and source.
 

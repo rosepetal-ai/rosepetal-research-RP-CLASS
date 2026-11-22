@@ -1,7 +1,13 @@
+---
+title: "RP-CLASS experiments"
+description: "Every experiment behind an RP-CLASS decision, newest first: what it asked, how it was run, what came out and what it decided."
+sidebar_label: "Experiments"
+---
+
 # Experiments
 
 Every experiment that informs a decision, newest first. Each entry says what it asked, how it was run (setup,
-data, GPU, seeds, command), what came out, and which decision of `docs/DESIGN.md` it settles or changes. Numbers are on
+data, GPU, seeds, command), what came out, and which decision of [Design](./DESIGN.md) it settles or changes. Numbers are on
 validation unless written otherwise; a test split is evaluated once at the end and never used for a decision.
 
 Template:

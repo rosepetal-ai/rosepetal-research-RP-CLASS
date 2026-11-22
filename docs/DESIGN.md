@@ -1,3 +1,9 @@
+---
+title: "RP-CLASS design"
+description: "What RP-CLASS is and the design decisions behind it, each with its reason, and how the library was built against them (As built)."
+sidebar_label: "Design"
+---
+
 # RP-CLASS design
 
 What RP-CLASS is and the decisions behind it, taken on 2026-11-05 after a review of RP-OD. When building shows that a
@@ -32,7 +38,7 @@ for any classification dataset. Anomaly detection is out of scope.
 | 17 | Pretrained weights through timm (Hugging Face), the exact tag pinned in the code (HGNetv2: ImageNet; lt: DINOv3 LVD-1689M); their licences in THIRD_PARTY.md. Own weight releases only if there is ever an own pretraining. | What RP-OD does for its backbone; no weights of our own to host. |
 | 18 | Benchmark: three small private inspection datasets (not published) to tune the recipe; public datasets (general and industrial, subsampled to few images per class, as RF100-VL does for detection) for the published comparison. Baselines: YOLO-cls and a DINOv3 fine-tune. The public list is used only after its licences are checked. | The real datasets decide the recipe; the public ones make the comparison repeatable. |
 | 19 | Experiments run on one RTX 4090, in Docker (Python 3.11, torch 2.6, timm 1.0.30). | Every training in docs/EXPERIMENTS.md ran in the same environment. |
-| 20 | `docs/EXPERIMENTS.md` keeps every experiment and its numbers. | The numbers behind every decision stay in the repository. |
+| 20 | [`docs/EXPERIMENTS.md`](./EXPERIMENTS.md) keeps every experiment and its numbers. | The numbers behind every decision stay in the repository. |
 
 ## As built
 
