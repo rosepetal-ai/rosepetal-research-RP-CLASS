@@ -101,7 +101,7 @@ Every image is decoded once before training, and the result is cached (in `~/.ca
 
 ```python
 from rpclass.data import check_dataset
-ds = check_dataset('parts')      # raises with the full list of errors; returns the records, stats and warnings
+ds = check_dataset('parts')      # raises listing the errors (the first 50, then how many more); returns the records, stats and warnings
 ```
 
 ## Training
@@ -130,7 +130,7 @@ model.predict('images/')                          # the object is now the best m
 | `name`, `project` | `'exp'`, `'runs/train'` | The run goes to `project/name`, with a number added if the folder exists |
 | `workers` | `None` | Dataloader workers: the `RPCLASS_WORKERS` environment variable, else the number of CPUs up to 8 |
 
-`train` returns a dict with `dir` (the run folder), `best_epoch`, `val` and `test` (metrics), `planned_epochs`, `stop_reason` (`'EPOCHS_COMPLETED'`, `'EARLY_STOPPED'` or `'TIME_BUDGET_REACHED'`) and `budget_overrun_s` (with `time`: seconds past the budget, negative when time was left). A model loaded from a checkpoint trains from its weights; with other classes, only the head starts fresh.
+`train` returns a dict with `dir` (the run folder), `best_epoch`, `val` and `test` (metrics), `planned_epochs`, `stop_reason` (`'EPOCHS_COMPLETED'`, `'EARLY_STOPPED'` or `'TIME_BUDGET_REACHED'`) and `budget_overrun_s` (with `time`: seconds past the budget, negative when time was left). A model loaded from a checkpoint trains from its weights; with another number of classes, only the head starts fresh.
 
 ### Training Recipe
 
