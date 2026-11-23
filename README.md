@@ -54,30 +54,32 @@ License, including its end-use restrictions, and a model trained from `lt` carri
 | Repository, licence, CI (tests, secret scan) | done |
 | Library: data, training (epochs or time budget), metrics, predict, export | done |
 | Backbone, sizes and recipe, chosen from measurements | done: sizes, augmentation, input size, learning rate and label smoothing (docs/DESIGN.md, As built) |
-| Benchmark | done: public benchmark version 1 (below); the recipe was tuned on three private OK / NOK inspection sets |
+| Benchmark | done: public benchmark version 1.2 (below); the recipe was tuned on three private OK / NOK inspection sets |
 | Serving (TensorRT float16 behind Triton, letterbox on the GPU) | done: the same answers as `predict()`, m in 0.7 ms and lt in 1.4 ms per image (docs/EXPERIMENTS.md, 2026-11-09) |
 
 ## Public benchmark
 
 14 public datasets (7 general, 7 industrial), each cut to about 300 training images, the size of a typical inspection
-dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1`). Each method trains
-with its own default recipe. Macro-F1, the mean over the datasets:
+dataset, with 3 seeds per method (`docs/BENCHMARK.md`, results in `benchmarks/public/results/v1.2`). Each method
+trains with its own default recipe. Macro-F1, the mean over the datasets:
 
 ![Macro-F1 on the public benchmark](docs/images/benchmark_macro_f1.png)
 
 | method | all 14 | general | industrial |
 |---|---|---|---|
-| RP-CLASS lt (DINOv3 ViT-S/16) | 88.8 ± 0.3 | 89.8 ± 0.3 | 87.8 ± 0.8 |
+| RP-CLASS lt (DINOv3 ViT-S/16) | 89.5 ± 0.3 | 89.8 ± 0.3 | 89.2 ± 0.7 |
 | RP-CLASS m (HGNetv2-B2) | 85.0 ± 0.6 | 82.4 ± 0.7 | 87.6 ± 0.7 |
 | YOLO11s-cls | 77.1 ± 1.2 | 77.8 ± 0.8 | 76.3 ± 2.5 |
 
-On every dataset, `m` is ahead of YOLO11s-cls, and `lt` is ahead on all but VisA. `lt` leads most on CLEVR count,
-which needs the whole scene. On the industrial sets the two sizes tie on average: `m` is ahead on VisA, `lt` on five of
-the other six, and DAGM is a tie (99.8). The numbers per dataset are in `docs/BENCHMARK.md`.
+On every dataset, both `m` and `lt` are ahead of YOLO11s-cls. `lt` leads most on CLEVR count, which needs the whole
+scene. On the industrial sets `lt` leads `m` by 1.6 points on average: `m` is ahead on VisA (94.0 against 92.4) and
+DAGM (99.8 against 99.6), `lt` on the other five. Version 1.2 reran `lt` with RP-CLASS 0.1.2, where a run that still
+answers one class after its warmup starts over (VisA 82.4 in version 1); `m` and YOLO11s-cls are version 1's runs. The
+numbers per dataset are in `docs/BENCHMARK.md`.
 
 ![Macro-F1 per dataset](docs/images/benchmark_per_dataset.png)
 
-`python3 benchmarks/public/plots.py` draws both charts from `benchmarks/public/results/v1/scores.csv`.
+`python3 benchmarks/public/plots.py` draws both charts from `benchmarks/public/results/v1.2/scores.csv`.
 
 ## Inference time
 
