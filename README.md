@@ -108,6 +108,16 @@ python3 -m pytest tests -q
 
 Outside pull requests are not accepted for now; issues are welcome (`CONTRIBUTING.md`).
 
+## Documentation
+
+- [docs/index.md](docs/index.md): the landing page of the documentation, with the dataset layout and its checks, the
+  arguments of `train`, the recipe and the ONNX contract.
+- [docs/DESIGN.md](docs/DESIGN.md), [docs/BENCHMARK.md](docs/BENCHMARK.md), [docs/DATASETS.md](docs/DATASETS.md) and
+  [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md): the design decisions, the public benchmark, its datasets and every
+  experiment.
+
+The same pages are published at <https://docs.rosepetal.ai/research/rp-class>.
+
 ## Acknowledgements
 
 RP-CLASS `lt` is built with DINOv3 (Siméoni et al., DINOv3, arXiv:2508.10104, 2025). The CNN sizes use HGNetv2
